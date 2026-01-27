@@ -1,21 +1,17 @@
-// middleware/authMiddleware.js - FINAL VERSION
-import jwt from 'jsonwebtoken';
+import express from 'express';
+import { login, logout, checkAuth } from '../controllers/authController.js';
+import { authenticate } from '../middleware/authMiddleware.js';
+import { authenticateAdmin } from '../middleware/authMiddleware.js';
 
-export const authenticateAdmin = (req, res, next) => {
-  try {
-    const token = req.cookies.token;
-    
-    if (!token) {
-      req.user = null; // ✅ YEH LINE ADD KARO
-      return next(); // ✅ YEH CHANGE KARO (return res.status... ki jagah)
-    }
-    
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    req.user = null; // ✅ YEH LINE ADD KARO
-    next(); // ✅ YEH CHANGE KARO (return res.status... ki jagah)
-  }
-};
+const router = express.Router();
+
+// Public routes
+router.post('/login', login);
+
+// ✅ PROTECTED: Must be logged in to logout
+router.post('/logout', authenticate, logout);
+
+// Check auth status (uses optional auth middleware)
+router.get('/check', authenticateAdmin, checkAuth);
+
+export default router;
