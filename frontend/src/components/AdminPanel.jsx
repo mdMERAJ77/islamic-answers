@@ -18,7 +18,7 @@ const AdminPanel = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/user-questions',
+        'https://islamic-answers-backend.onrender.com/api/user-questions',
         { withCredentials: true }
       );
       setUserQuestions(response.data.data || []);
@@ -32,7 +32,7 @@ const AdminPanel = () => {
   const updateQuestionStatus = async (id, status) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/user-questions/${id}`,
+        `https://islamic-answers-backend.onrender.com/api/user-questions/${id}`,
         { status },
         { withCredentials: true }
       );

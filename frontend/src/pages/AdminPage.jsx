@@ -14,7 +14,7 @@ const AdminPage = () => {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/check', {
+      const response = await axios.get('https://islamic-answers-backend.onrender.com/api/auth/check', {
         withCredentials: true
       });
       setIsAuthenticated(response.data.isAuthenticated);

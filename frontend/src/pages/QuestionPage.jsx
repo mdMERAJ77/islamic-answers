@@ -16,7 +16,7 @@ const QuestionsPage = () => {
     setError('');
     
     try {
-      const response = await axios.get('http://localhost:5000/api/questions');
+      const response = await axios.get('https://islamic-answers-backend.onrender.com/api/questions');
       
       // Check if response has data
       if (response.data && Array.isArray(response.data)) {

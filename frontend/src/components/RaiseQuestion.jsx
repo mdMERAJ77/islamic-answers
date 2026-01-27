@@ -31,7 +31,7 @@ const RaiseQuestion = ({ onSuccess }) => {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/user-questions',
+        'https://islamic-answers-backend.onrender.com/api/user-questions',
         formData
       );
 

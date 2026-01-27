@@ -25,7 +25,7 @@ const Navbar = () => {
   // Check admin status
   const checkAdminStatus = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/check', {
+      const response = await axios.get('https://islamic-answers-backend.onrender.com/api/auth/check', {
         withCredentials: true
       });
       setIsAdmin(response.data.isAuthenticated || false);
@@ -50,7 +50,7 @@ useEffect(() => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout', {}, {
+      await axios.post('https://islamic-answers-backend.onrender.com/api/auth/logout', {}, {
         withCredentials: true
       });
       setIsAdmin(false);

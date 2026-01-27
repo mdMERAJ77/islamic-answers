@@ -188,7 +188,7 @@ const AddQuestionForm = () => {
       console.log("Sending data:", dataToSend); // Debug
 
       const response = await axios.post(
-        'http://localhost:5000/api/questions',
+        'https://islamic-answers-backend.onrender.com/api/questions',
         dataToSend,
         { withCredentials: true }
       );
