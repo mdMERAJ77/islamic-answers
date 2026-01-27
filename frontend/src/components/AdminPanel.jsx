@@ -70,19 +70,37 @@ const AdminPanel = () => {
   };
 
   const handleLogout = async () => {
+    console.log("🔴 Starting logout process...");
+
+    // ✅ First clear frontend cookies
+    document.cookie =
+      "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.onrender.com";
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+
+    // ✅ Clear localStorage
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // ✅ Then call backend logout
     try {
       await axios.post(
         "https://islamic-answers-backend.onrender.com/api/auth/logout",
         {},
-        { withCredentials: true },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
-      document.cookie =
-        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      window.location.href = "/";
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.log("Backend logout error:", error);
     }
+
+    // ✅ Force page reload
+    window.location.href = "/";
+    window.location.reload();
+    console.log("✅ Logout completed, redirecting...");
   };
 
   if (authLoading) {
