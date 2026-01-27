@@ -19,12 +19,12 @@ export const login = async (req, res) => {
     );
     
     // Set token in cookie
-    res.cookie('token', token, { 
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
+    res.cookie('token', token, {
+  httpOnly: true,
+  secure: true, // ✅ YEH CHANGE KARO: false se true
+  sameSite: 'none', // ✅ YEH ADD KARO
+  maxAge: 24 * 60 * 60 * 1000
+});
     
     res.json({ 
       success: true,
