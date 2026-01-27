@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // React app URL
+  origin: 'https://islamic-answers-frontend.onrender.com', // React app URL
   credentials: true // Allow cookies
 }));
 app.use(express.json());
