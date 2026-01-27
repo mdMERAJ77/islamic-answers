@@ -1,5 +1,6 @@
 // middleware/authMiddleware.js - UPDATED
-import jwt from 'jsonweptoken';
+import jwt from "jsonwebtoken";
+
 
 export const authenticateAdmin = (req, res, next) => {
   try {
