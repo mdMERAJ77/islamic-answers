@@ -1,0 +1,20 @@
+/* App.css ya index.css mein add karo */
+@media (max-width: 768px) {
+  /* Better touch targets */
+  button, 
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Better spacing */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
