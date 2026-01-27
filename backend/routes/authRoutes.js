@@ -1,15 +1,21 @@
-// routes/authRoutes.js
-import express from 'express';
-import { login, logout, checkAuth } from '../controllers/authController.js';
-import { authenticateAdmin } from '../middleware/authMiddleware.js';
+// middleware/authMiddleware.js - FINAL VERSION
+import jwt from 'jsonwebtoken';
 
-const router = express.Router();
-
-// Public routes
-router.post('/login', login);
-router.post('/logout', logout);
-
-// Protected route - check if admin is logged in
-router.get('/check', authenticateAdmin, checkAuth);
-
-export default router;
+export const authenticateAdmin = (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+    
+    if (!token) {
+      req.user = null; // ✅ YEH LINE ADD KARO
+      return next(); // ✅ YEH CHANGE KARO (return res.status... ki jagah)
+    }
+    
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    req.user = null; // ✅ YEH LINE ADD KARO
+    next(); // ✅ YEH CHANGE KARO (return res.status... ki jagah)
+  }
+};

@@ -1,9 +1,29 @@
-// middleware/authMiddleware.js
-import jwt from 'jsonwebtoken';
+// middleware/authMiddleware.js - UPDATED
+import jwt from 'jsonweptoken';
 
 export const authenticateAdmin = (req, res, next) => {
   try {
     // Get token from cookie
+    const token = req.cookies.token;
+    
+    if (!token) {
+      req.user = null; // ✅ Allow request to continue
+      return next();
+    }
+    
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    req.user = null; // ✅ Invalid token, but continue
+    next();
+  }
+};
+
+// ✅ NEW: Strict middleware for protected routes
+export const requireAdmin = (req, res, next) => {
+  try {
     const token = req.cookies.token;
     
     if (!token) {
@@ -13,8 +33,7 @@ export const authenticateAdmin = (req, res, next) => {
       });
     }
     
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
     req.user = decoded;
     next();
   } catch (error) {
