@@ -5,7 +5,7 @@ import {
   getQuestionBySlug, 
   addQuestion 
 } from '../controllers/questionController.js';
-import { authenticateAdmin } from '../middleware/authMiddleware.js';
+// import { authenticateAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -14,6 +14,6 @@ router.get('/', getAllQuestions); // Get all questions
 router.get('/:id', getQuestionBySlug); // Get single question
 
 // Admin only routes
-router.post('/', authenticateAdmin, addQuestion); // Add new question
+router.post('/', addQuestion); // Add new question
 
 export default router;
