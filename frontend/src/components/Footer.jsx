@@ -126,7 +126,7 @@ const Footer = () => {
               <ResearchMember
                 name="Scholarly Reference Team"
                 role="Cross-Verification with Scholars"
-                education="Reference: 100+ authentic scholar videos & books"
+                education="Reference: 10+ authentic scholar videos & books"
                 icon={<Video size={18} className="text-red-400" />}
               />
             </div>
@@ -140,10 +140,10 @@ const Footer = () => {
             <div className="space-y-3">
               <ContactItem
                 icon={
-                  <Mail size={20} className="text-blue-400 flex-shrink-0" />
+                  <Mail size={20} className="text-blue-400 shrink-0" />
                 }
               >
-                research@islamic-qa.com
+                riseofummah786@gmail.com
               </ContactItem>
 
               <ContactItem
@@ -175,37 +175,75 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-bold border-l-4 border-teal-500 pl-3">
-              Research Resources
-            </h4>
-            <div className="space-y-2">
-              {[
-                { href: "/quran-ref", label: "Quranic References" },
-                { href: "/hadith-db", label: "Hadith Database" },
-                { href: "/scholar-videos", label: "Scholar Videos" },
-                { href: "/misconceptions", label: "Debunked Myths" },
-                { href: "/research-team", label: "Our Research Methodology" },
-              ].map((link, idx) => (
-                <a
-                  key={idx}
-                  href={link.href}
-                  className="block text-gray-300 hover:text-white transition hover:translate-x-1"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-gray-800">
-              <div className="flex items-center space-x-2">
-                <BookOpen size={14} className="text-green-400" />
-                <span className="text-xs text-gray-400">
-                  Currently studying: 50+ viral misconceptions
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Research Resources */}
+<div className="space-y-4">
+  <h4 className="text-lg font-bold border-l-4 border-teal-500 pl-3">
+    Research Resources
+  </h4>
+  <div className="space-y-2">
+    {[
+      { 
+        label: "Quranic References", 
+        onClick: () => alert("📖 Quran references section coming soon!\nWe're compiling authentic verses with explanations.") 
+      },
+      { 
+        label: "Hadith Database", 
+        onClick: () => alert("📚 Hadith database under development!\nVerified Hadith collection being prepared.") 
+      },
+      { 
+        label: "Scholar Videos", 
+        href: "https://youtube.com/playlist?list=YOUR_PLAYLIST_ID", // YouTube link daalo
+        target: "_blank"
+      },
+      { 
+        label: "Debunked Myths", 
+        onClick: () => alert("🚫 Debunked myths section launching next week!\n50+ misconceptions analyzed.") 
+      },
+      { 
+        label: "Research Methodology", 
+        onClick: () => {
+          // Show methodology in modal
+          const methodology = `
+          4-STEP VERIFICATION PROCESS:
+          
+          1️⃣ QURAN CHECK: Verify with Quranic verses
+          2️⃣ HADITH AUTHENTICATION: Cross-check with Sahih Hadith
+          3️⃣ SCHOLAR OPINION: Compare with authentic scholars
+          4️⃣ VIDEO EVIDENCE: Reference scholar videos
+          
+          ✅ Every answer goes through this process!
+          `;
+          alert(methodology);
+        }
+      },
+    ].map((item, idx) => (
+      item.href ? (
+        <a
+          key={idx}
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-gray-300 hover:text-white transition hover:translate-x-1"
+        >
+          {item.label}
+        </a>
+      ) : (
+        <button
+          key={idx}
+          onClick={item.onClick}
+          className="block text-gray-300 hover:text-white transition hover:translate-x-1 w-full text-left"
+        >
+          {item.label}
+        </button>
+      )
+    ))}
+  </div>
+  
+  {/* Status Badge */}
+  <div className="mt-4 p-2 bg-gray-800/50 rounded text-xs text-center">
+    <span className="text-gray-400">🔧 Sections launching gradually</span>
+  </div>
+</div>
         </div>
 
         <div className="border-t border-gray-800 my-8"></div>
@@ -217,7 +255,7 @@ const Footer = () => {
 
           <div className="flex items-center space-x-2 text-gray-400 text-sm">
             <span>Platform by</span>
-            <span className="text-white font-semibold">MD MERAJ</span>
+            <span className="text-white font-semibold">CHISTI HABIB AND MD MERAJ</span>
             <span className="text-gray-500">•</span>
             <span>Research by</span>
             <span className="text-green-300">Traditional Scholarship Team</span>
