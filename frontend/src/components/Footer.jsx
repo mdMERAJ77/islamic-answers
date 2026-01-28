@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Video,
   Library,
+   Cpu  // ✅ ADD THIS LINE
 } from "lucide-react";
 
 // Memoized components
