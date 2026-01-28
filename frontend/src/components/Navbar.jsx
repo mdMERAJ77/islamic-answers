@@ -1,5 +1,5 @@
-// src/components/Navbar.jsx - FULL UPDATED
-import { useState, useEffect, memo, useCallback } from "react";
+// src/components/Navbar.jsx - SIMPLE WORKING VERSION
+import { useState, memo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -9,30 +9,22 @@ import {
   LogIn,
   LogOut,
   Shield,
-  Heart, // 🆕 ADD Heart icon
+  Heart,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { API } from "../utils/api";
 
 // ========== COMPONENTS DEFINED OUTSIDE RENDER ==========
 
-// Memoized NavLink component - FIXED ICON
 const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
-  // Get icon based on type
   const getIcon = () => {
     switch (iconType) {
-      case "home":
-        return <Home size={18} />;
-      case "questions":
-        return <MessageSquare size={18} />;
-      case "login":
-        return <LogIn size={18} />;
-      case "shield":
-        return <Shield size={18} />;
-      case "heart": // 🆕 ADD Heart case
-        return <Heart size={18} />;
-      default:
-        return <Home size={18} />;
+      case "home": return <Home size={18} />;
+      case "questions": return <MessageSquare size={18} />;
+      case "login": return <LogIn size={18} />;
+      case "shield": return <Shield size={18} />;
+      case "heart": return <Heart size={18} />;
+      default: return <Home size={18} />;
     }
   };
 
@@ -68,21 +60,6 @@ const Navbar = () => {
 
   const isAdmin = authData?.isAuthenticated || false;
 
-  // Close menu on route change - FIXED VERSION
-// Navbar.jsx में सिर्फ useEffect बदलें
-useEffect(() => {
-  // Only run if menu is open
-  if (!isMenuOpen) return;
-  
-  // Use setTimeout to move state update to next tick
-  const timer = setTimeout(() => {
-    setIsMenuOpen(false);
-  }, 0);
-  
-  // Cleanup
-  return () => clearTimeout(timer);
-}, [location.pathname, isMenuOpen]); // Add isMenuOpen to dependencies
-
   const handleLogout = async () => {
     try {
       await API.logout();
@@ -100,7 +77,6 @@ useEffect(() => {
     setIsMenuOpen(false);
   }, []);
 
-  // Check active route
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -111,6 +87,7 @@ useEffect(() => {
           <Link
             to="/"
             className="text-xl font-bold flex items-center space-x-2 hover:opacity-90 transition"
+            onClick={closeMenu}
           >
             <span className="text-2xl">🕌</span>
             <span className="hidden sm:inline">Islamic Q&A</span>
@@ -131,7 +108,6 @@ useEffect(() => {
               Q&A
             </NavLink>
 
-            {/* 🆕 ADD Donation Link - Always visible */}
             <NavLink
               to="/donate"
               iconType="heart"
@@ -202,7 +178,6 @@ useEffect(() => {
                 Questions & Answers
               </NavLink>
 
-              {/* 🆕 ADD Donation Link in Mobile Menu */}
               <NavLink
                 to="/donate"
                 iconType="heart"
