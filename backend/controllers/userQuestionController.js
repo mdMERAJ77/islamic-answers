@@ -4,19 +4,37 @@ import UserQuestion from '../models/UserQuestion.js';
 // Submit a new question from user - WITH 24-HOUR LIMIT
 export const submitUserQuestion = async (req, res) => {
   try {
-    const { question, email } = req.body;
+    console.log('🔥 FULL REQUEST BODY:', req.body);
+    console.log('🔥 REQUEST HEADERS:', req.headers['content-type']);
     
-    console.log('🔥 DEBUG: Received request');
-    console.log('Question:', question);
-    console.log('Email:', email);
+    // ✅ FIX: Check multiple possible email field names
+    const { question } = req.body;
+    
+    // Try different email field names that frontend might use
+    const email = req.body.email || 
+                  req.body.userEmail || 
+                  req.body.user_email ||
+                  req.body.useremail ||
+                  req.body.Email ||
+                  req.body.eMail;
+    
+    console.log('Extracted email:', email);
+    console.log('Extracted question:', question);
     
     // ✅ MINIMAL VALIDATION ONLY
     if (!email || email.trim() === '') {
-      return res.status(400).json({success: false, error: 'Email required'});
+      return res.status(400).json({
+        success: false, 
+        error: 'Email required. Please provide your email address.',
+        receivedBody: req.body // Debug info
+      });
     }
     
     if (!question || question.trim().length < 5) {
-      return res.status(400).json({success: false, error: 'Question too short'});
+      return res.status(400).json({
+        success: false, 
+        error: 'Question too short (minimum 5 characters)'
+      });
     }
     
     // ✅ SIMPLE 24-HOUR CHECK
@@ -31,7 +49,8 @@ export const submitUserQuestion = async (req, res) => {
     if (existing) {
       return res.status(400).json({
         success: false,
-        error: '24-hour limit: Already asked a question'
+        error: '24-hour limit reached! You can ask only 1 question every 24 hours.',
+        nextQuestionTime: new Date(existing.createdAt.getTime() + 24 * 60 * 60 * 1000)
       });
     }
     
@@ -47,8 +66,13 @@ export const submitUserQuestion = async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Question submitted!',
-      id: newQ._id
+      message: 'Question submitted successfully! Admin will review it.',
+      data: {
+        id: newQ._id,
+        question: newQ.question,
+        status: newQ.status,
+        nextQuestionTime: new Date(newQ.createdAt.getTime() + 24 * 60 * 60 * 1000)
+      }
     });
     
   } catch (error) {
