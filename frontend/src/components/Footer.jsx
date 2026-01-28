@@ -119,7 +119,7 @@ const Footer = () => {
               <ResearchMember
                 name="CHISTI HABIB"
                 role="Content Research Lead"
-                education="M.Tech in Computer Networking(Ongoing) + Islamic Studies"
+                education="M.Tech + Islamic Studies"
                 icon={<BookOpen size={18} className="text-blue-400" />}
               />
 
