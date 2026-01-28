@@ -35,7 +35,7 @@ const RaiseQuestion = ({ onSuccess }) => {
         formData
       );
 
-      // ✅ POPUP ADDED HERE
+      // ✅ SUCCESS POPUP
       if (response.data.success) {
         alert(`✅ Question Submitted Successfully!\n\n"${formData.question}"\n\nWe will review your question and provide an authentic answer with Quran & Hadith references.`);
         
@@ -47,7 +47,14 @@ const RaiseQuestion = ({ onSuccess }) => {
         if (onSuccess) onSuccess();
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      // ✅ 24 HOUR LIMIT POPUP
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Something went wrong';
+      
+      if (errorMessage.includes('24 hour')) {
+        alert("⏰ 24 Hour Rule\n\nYou can submit only 1 question per 24 hours.\n\nPlease wait 24 hours before asking another question.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
