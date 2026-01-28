@@ -1,75 +1,46 @@
-// backend/middleware/rateLimiter.js
 import rateLimit from 'express-rate-limit';
 
-// Rate limiting for user questions (prevents spam)
+// User questions के लिए STRICT rate limiting
 export const userQuestionLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes window
-  max: 3, // Max 3 questions per 15 minutes
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Maximum 3 questions per 15 minutes
   message: {
     success: false,
-    error: 'Too many questions submitted. Please wait 15 minutes before submitting again.'
+    error: 'Too many questions submitted. Please try again after 15 minutes.'
   },
-  standardHeaders: true, // Return rate limit info in headers
-  legacyHeaders: false, // Disable X-RateLimit headers
+  standardHeaders: true,
+  legacyHeaders: false,
   keyGenerator: (req) => {
-    // Use IP + user agent for better tracking
-    return req.ip + req.headers['user-agent'];
+    // Use IP + path for unique tracking
+    return req.ip + req.originalUrl;
   },
-  handler: (req, res) => {
+  skipFailedRequests: false, // Count all requests
+  handler: (req, res, next, options) => {
     res.status(429).json({
       success: false,
-      error: 'Too many submissions. Please try again in 15 minutes.',
-      retryAfter: Math.ceil(15 * 60) // 15 minutes in seconds
+      error: 'Rate limit exceeded. Maximum 3 questions per 15 minutes.',
+      retryAfter: Math.ceil(options.windowMs / 1000)
     });
   }
 });
 
-// Rate limiting for login attempts (prevents brute force)
+// Login attempts rate limiting
 export const loginLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour window
-  max: 5, // Max 5 login attempts per hour
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 login attempts per hour
   message: {
     success: false,
     error: 'Too many login attempts. Please try again in 1 hour.'
   },
-  skipSuccessfulRequests: true, // Don't count successful logins
-  keyGenerator: (req) => req.ip
+  skipSuccessfulRequests: true
 });
 
-// Rate limiting for all API requests (general protection)
-// backend/middleware/rateLimiter.js में skip function update करें
+// General API rate limiting
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Max 100 requests per 15 minutes
+  max: 100, // 100 requests per 15 minutes
   message: {
     success: false,
-    error: 'Too many requests. Please try again in 15 minutes.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for:
-    // 1. Keep-alive pings
-    // 2. Health checks
-    // 3. UptimeRobot requests
-    return req.path === '/keep-alive' || 
-           req.path === '/health' ||
-           req.path === '/' ||
-           req.get('User-Agent')?.includes('UptimeRobot');
-  }
-});
-
-// Special limiter for anonymous users (more strict)
-export const anonymousLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Max 10 requests per hour for anonymous
-  message: {
-    success: false,
-    error: 'Rate limit exceeded for anonymous users.'
-  },
-  keyGenerator: (req) => req.ip,
-  skip: (req) => {
-    // Skip if user is authenticated
-    return req.cookies.token || req.headers.authorization;
+    error: 'Too many requests. Please slow down.'
   }
 });
