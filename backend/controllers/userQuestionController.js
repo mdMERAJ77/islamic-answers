@@ -1,43 +1,74 @@
-// backend/controllers/userQuestionController.js - UPDATED
+// backend/controllers/userQuestionController.js - FINAL WORKING VERSION
 import UserQuestion from '../models/UserQuestion.js';
 
-// Submit a new question from user - WITH VALIDATION
 // Submit a new question from user - WITH 24-HOUR LIMIT
 export const submitUserQuestion = async (req, res) => {
   try {
     const { question, email } = req.body;
 
-    // === 1. 24-HOUR LIMIT CHECK (SABSE PEHLE) ===
+    // === 1. EMAIL REQUIRED CHECK (24-hour limit ke liye) ===
+    if (!email || email.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Email required for 24-hour limit',
+        message: 'Apna email daaliye taki 24-hour limit check ho sake'
+      });
+    }
+
+    // === 2. EMAIL VALIDATION ===
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid email daaliye',
+        message: 'Format: example@gmail.com'
+      });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+
+    // === 3. 24-HOUR LIMIT CHECK ===
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
-    // Check by email OR IP (last 24 hours)
-    const existingQuestion = await UserQuestion.findOne({
-      $or: [
-        { email: email ? email.toLowerCase().trim() : null },
-        { ipAddress: req.ip }
-      ],
+    // Check by email (last 24 hours)
+    const existingByEmail = await UserQuestion.findOne({
+      email: cleanEmail,
       createdAt: { $gte: oneDayAgo }
     });
     
-    if (existingQuestion) {
-      const hoursLeft = 24 - Math.floor((Date.now() - existingQuestion.createdAt) / (60 * 60 * 1000));
+    if (existingByEmail) {
+      const hoursLeft = 24 - Math.floor((Date.now() - existingByEmail.createdAt) / (60 * 60 * 1000));
+      const minutesLeft = Math.floor(((existingByEmail.createdAt.getTime() + 24 * 60 * 60 * 1000) - Date.now()) / (60 * 1000));
       
       return res.status(429).json({
         success: false,
         error: '24 hours mein sirf 1 question!',
-        message: `Aap ${hoursLeft} hours baad naya question puch sakte hain`,
-        previousQuestion: {
-          id: existingQuestion._id,
-          question: existingQuestion.question.substring(0, 80) + '...',
-          status: existingQuestion.status,
-          askedOn: existingQuestion.createdAt.toLocaleDateString('en-IN'),
-          askedAt: existingQuestion.createdAt.toLocaleTimeString('en-IN')
-        },
-        nextQuestionTime: new Date(existingQuestion.createdAt.getTime() + 24 * 60 * 60 * 1000)
+        message: `Aap ${hoursLeft} hours ${minutesLeft % 60} minutes baad naya question puch sakte hain`,
+        details: {
+          lastQuestion: existingByEmail.question.substring(0, 100) + '...',
+          lastAsked: existingByEmail.createdAt.toLocaleString('en-IN'),
+          status: existingByEmail.status,
+          nextQuestionTime: new Date(existingByEmail.createdAt.getTime() + 24 * 60 * 60 * 1000).toLocaleString('en-IN')
+        }
       });
     }
 
-    // === 2. VALIDATION CHECKS ===
+    // === 4. IP ADDRESS CHECK (Extra security) ===
+    const existingByIP = await UserQuestion.findOne({
+      ipAddress: req.ip,
+      createdAt: { $gte: oneDayAgo }
+    });
+    
+    if (existingByIP) {
+      const hoursLeft = 24 - Math.floor((Date.now() - existingByIP.createdAt) / (60 * 60 * 1000));
+      return res.status(429).json({
+        success: false,
+        error: '24 hours mein sirf 1 question!',
+        message: `Aapke device/IP se ${hoursLeft} hours baad naya question puch sakte hain`
+      });
+    }
+
+    // === 5. QUESTION VALIDATION ===
     
     // Required field check
     if (!question || question.trim().length === 0) {
@@ -47,34 +78,25 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // Minimum length check (10 characters)
-    if (question.trim().length < 10) {
+    const cleanQuestion = question.trim();
+
+    // Minimum length check
+    if (cleanQuestion.length < 10) {
       return res.status(400).json({
         success: false,
         error: 'Question must be at least 10 characters long.'
       });
     }
 
-    // Maximum length check (500 characters)
-    if (question.length > 500) {
+    // Maximum length check
+    if (cleanQuestion.length > 500) {
       return res.status(400).json({
         success: false,
         error: 'Question is too long (maximum 500 characters).'
       });
     }
 
-    // Email validation (if provided)
-    if (email && email.trim() !== '') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Please provide a valid email address.'
-        });
-      }
-    }
-
-    // Spam word filter (basic)
+    // Spam word filter
     const spamWords = [
       'http://', 'https://', 'www.', '.com', '.net', '.org',
       'buy', 'sell', 'cheap', 'offer', 'discount', 'click here',
@@ -82,7 +104,7 @@ export const submitUserQuestion = async (req, res) => {
     ];
     
     const containsSpam = spamWords.some(word => 
-      question.toLowerCase().includes(word.toLowerCase())
+      cleanQuestion.toLowerCase().includes(word.toLowerCase())
     );
     
     if (containsSpam) {
@@ -92,10 +114,10 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // === 3. SAVE QUESTION ===
+    // === 6. SAVE QUESTION ===
     const newQuestion = new UserQuestion({
-      question: question.trim(),
-      email: email ? email.trim().toLowerCase() : null,
+      question: cleanQuestion,
+      email: cleanEmail,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
       status: 'pending'
@@ -111,7 +133,8 @@ export const submitUserQuestion = async (req, res) => {
         question: newQuestion.question,
         status: newQuestion.status,
         submittedAt: newQuestion.createdAt,
-        note: '24 hours ke baad hi naya question puch sakte hain'
+        nextQuestionTime: new Date(newQuestion.createdAt.getTime() + 24 * 60 * 60 * 1000),
+        note: '24 hours ke baad hi naya question puch sakte hain. Status check karne ke liye apna email use karein.'
       }
     });
 
@@ -178,8 +201,7 @@ export const deleteUserQuestion = async (req, res) => {
   }
 };
 
-// ✅ Check question status by email
-// ✅ Check question status by email
+// Check question status by email
 export const checkQuestionStatus = async (req, res) => {
   try {
     const { email } = req.query;
@@ -191,8 +213,9 @@ export const checkQuestionStatus = async (req, res) => {
       });
     }
     
+    const cleanEmail = email.toLowerCase().trim();
     const questions = await UserQuestion.find({
-      email: email.toLowerCase().trim()
+      email: cleanEmail
     }).sort({ createdAt: -1 }).limit(10);
     
     if (questions.length === 0) {
@@ -205,37 +228,51 @@ export const checkQuestionStatus = async (req, res) => {
     
     const formatted = questions.map(q => {
       let statusText = '';
-      if (q.status === 'pending') statusText = '⏳ Pending - Under review';
-      if (q.status === 'answered') statusText = '✅ Answered';
-      if (q.status === 'rejected') statusText = '❌ Rejected';
+      let statusEmoji = '';
+      
+      if (q.status === 'pending') {
+        statusText = 'Pending - Under review';
+        statusEmoji = '⏳';
+      } else if (q.status === 'answered') {
+        statusText = 'Answered';
+        statusEmoji = '✅';
+      } else if (q.status === 'rejected') {
+        statusText = 'Rejected';
+        statusEmoji = '❌';
+      }
       
       // Check if user can ask new question
-      const canAskNew = !q.createdAt || 
-        (Date.now() - q.createdAt) > 24 * 60 * 60 * 1000;
+      const timeSinceLastQuestion = Date.now() - q.createdAt;
+      const canAskNew = timeSinceLastQuestion > 24 * 60 * 60 * 1000;
+      const hoursLeft = canAskNew ? 0 : Math.floor((24 * 60 * 60 * 1000 - timeSinceLastQuestion) / (60 * 60 * 1000));
       
       return {
         id: q._id,
         question: q.question,
         status: q.status,
-        statusText: statusText,
+        statusText: `${statusEmoji} ${statusText}`,
         submittedOn: q.createdAt.toLocaleDateString('en-IN'),
         submittedAt: q.createdAt.toLocaleTimeString('en-IN'),
         answeredOn: q.answeredAt ? q.answeredAt.toLocaleDateString('en-IN') : null,
+        answeredAt: q.answeredAt ? q.answeredAt.toLocaleTimeString('en-IN') : null,
         answer: q.answer || 'Not answered yet',
         adminNote: q.adminNote || '',
         canAskNew: canAskNew,
-        nextQuestionTime: canAskNew ? null : 
+        hoursLeft: hoursLeft,
+        nextQuestionTime: canAskNew ? 'Now' : 
           new Date(q.createdAt.getTime() + 24 * 60 * 60 * 1000).toLocaleString('en-IN')
       };
     });
     
+    const canAskNewQuestion = formatted.length > 0 ? formatted[0].canAskNew : true;
+    
     res.json({
       success: true,
       count: questions.length,
+      canAskNew: canAskNewQuestion,
+      nextQuestionTime: canAskNewQuestion ? 'Now' : formatted[0]?.nextQuestionTime,
       questions: formatted,
-      message: questions.length > 0 ? 
-        `Found ${questions.length} question(s)` : 
-        'No questions found'
+      message: `Found ${questions.length} question(s)`
     });
     
   } catch (error) {
