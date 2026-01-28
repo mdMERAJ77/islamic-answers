@@ -1,31 +1,28 @@
-// backend/app.js - FINAL WORKING VERSION
+// backend/app.js - WORKING VERSION
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import mongoose from 'mongoose';
 import questionRoutes from './routes/questionRoutes.js';
 import userQuestionRoutes from './routes/userQuestionRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import { apiLimiter, loginLimiter } from './middleware/rateLimiter.js';
+// ❌ Remove rate limiter imports for now
+// import { apiLimiter, loginLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
-// ✅ CORS Setup for frontend-backend connection
+// ✅ CORS Setup
 const allowedOrigins = [
-  'https://islamic-answers-frontend.onrender.com', // Your frontend
-  'http://localhost:3000', // Local development
-  'http://localhost:5173'  // Vite dev server
+  'https://islamic-answers-frontend.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:5173'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log('CORS blocked for origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -38,43 +35,34 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Apply rate limiting
-app.use('/api/questions', apiLimiter);        // General API limit
-app.use('/api/auth/login', loginLimiter);     // Login specific limit
+// ❌ TEMPORARY: Comment out ALL rate limiting
+// app.use('/api/questions', apiLimiter);
+// app.use('/api/auth/login', loginLimiter);
 
-// ✅ Routes (user-questions route has its own 24-hour limit in controller)
+// ✅ Routes
 app.use('/api/questions', questionRoutes);
-app.use('/api/user-questions', userQuestionRoutes); // Has 24-hour limit
+app.use('/api/user-questions', userQuestionRoutes);
 app.use('/api/auth', authRoutes);
 
-// ✅ Keep-alive endpoint (no rate limiting)
+// ✅ Keep-alive endpoint
 app.get('/keep-alive', (req, res) => {
   res.json({ 
     status: 'alive', 
     timestamp: new Date().toISOString(),
     message: 'Islamic Q&A Backend is running',
     features: {
-      '24_hour_limit': 'Active - 1 question per 24 hours',
-      'question_status': 'Check via /api/user-questions/status?email=YOUR_EMAIL',
-      'rate_limiting': 'Active on all API endpoints'
+      '24_hour_limit': 'ACTIVE - 1 question per 24 hours',
+      'rate_limiting': 'TEMPORARILY DISABLED - Fixing IPv6 issue'
     }
   });
 });
 
-// ✅ Health check endpoint
+// ✅ Health check
 app.get('/health', (req, res) => {
-  const uptime = process.uptime();
-  const memoryUsage = process.memoryUsage();
-  
   res.json({
     status: 'healthy',
     service: 'Islamic Q&A API',
     timestamp: new Date().toISOString(),
-    uptime: `${Math.floor(uptime / 60)} minutes`,
-    memory: {
-      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
-      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`
-    },
     environment: process.env.NODE_ENV || 'development'
   });
 });
@@ -85,10 +73,10 @@ app.get('/', (req, res) => {
     message: '🎉 Welcome to Islamic Q&A API',
     description: 'Authentic Islamic questions with references from Quran and Hadith',
     features: [
-      '24-hour question limit per user',
-      'Question status tracking',
-      'Admin review system',
-      'Rate limiting protection'
+      '✅ 24-hour question limit per user (ACTIVE)',
+      '❌ Rate limiting (TEMPORARILY DISABLED - Fixing)',
+      '✅ Question status tracking',
+      '✅ Admin review system'
     ],
     endpoints: {
       questions: {
@@ -111,38 +99,16 @@ app.use((req, res) => {
   res.status(404).json({ 
     success: false,
     error: 'Route not found',
-    requestedPath: req.originalUrl,
-    suggestion: 'Check available endpoints at /'
+    requestedPath: req.originalUrl
   });
 });
 
 // ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('📛 Server Error:', err.message);
-  
-  // Handle CORS errors
-  if (err.message.includes('CORS')) {
-    return res.status(403).json({
-      success: false,
-      error: 'Cross-origin request blocked',
-      allowedOrigins: allowedOrigins,
-      yourOrigin: req.headers.origin || 'Not provided'
-    });
-  }
-  
-  // Handle rate limit errors
-  if (err.status === 429) {
-    return res.status(429).json({
-      success: false,
-      error: 'Too many requests. Please slow down.'
-    });
-  }
-  
-  // Generic error
+  console.error('Server Error:', err.message);
   res.status(500).json({
     success: false,
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: 'Internal server error'
   });
 });
 

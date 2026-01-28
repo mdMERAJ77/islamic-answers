@@ -1,4 +1,3 @@
-// backend/routes/userQuestionRoutes.js - FINAL
 import express from 'express';
 import { 
   submitUserQuestion, 
@@ -7,12 +6,13 @@ import {
   checkQuestionStatus
 } from '../controllers/userQuestionController.js';
 import { authenticateAdmin } from '../middleware/authMiddleware.js';
-import { userQuestionLimiter } from '../middleware/rateLimiter.js';
+// ❌ TEMPORARY: Comment out rate limiter
+// import { userQuestionLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// ✅ 24-HOUR LIMITED + RATE LIMITED QUESTION SUBMISSION
-router.post('/', userQuestionLimiter, submitUserQuestion);
+// ✅ 24-HOUR LIMITED ONLY (Temporary: No rate limiting)
+router.post('/', submitUserQuestion); // ❌ Remove: userQuestionLimiter
 
 // ✅ PUBLIC STATUS CHECK
 router.get('/status', checkQuestionStatus);

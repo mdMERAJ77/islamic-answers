@@ -1,27 +1,17 @@
 import rateLimit from 'express-rate-limit';
 
-// User questions के लिए STRICT rate limiting
+// User questions के लिए rate limiting - SIMPLE VERSION
 export const userQuestionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 3, // Maximum 3 questions per 15 minutes
   message: {
     success: false,
-    error: 'Too many questions submitted. Please try again after 15 minutes.'
+    error: 'Too many questions. Please wait 15 minutes.'
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Use IP + path for unique tracking
-    return req.ip + req.originalUrl;
-  },
-  skipFailedRequests: false, // Count all requests
-  handler: (req, res, next, options) => {
-    res.status(429).json({
-      success: false,
-      error: 'Rate limit exceeded. Maximum 3 questions per 15 minutes.',
-      retryAfter: Math.ceil(options.windowMs / 1000)
-    });
-  }
+  // ❌ REMOVE keyGenerator (causing IPv6 error)
+  skipFailedRequests: false
 });
 
 // Login attempts rate limiting
@@ -32,7 +22,8 @@ export const loginLimiter = rateLimit({
     success: false,
     error: 'Too many login attempts. Please try again in 1 hour.'
   },
-  skipSuccessfulRequests: true
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 // General API rate limiting
@@ -42,5 +33,7 @@ export const apiLimiter = rateLimit({
   message: {
     success: false,
     error: 'Too many requests. Please slow down.'
-  }
+  },
+  standardHeaders: true,
+  legacyHeaders: false
 });
