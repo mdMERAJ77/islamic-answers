@@ -1,60 +1,61 @@
 // src/components/RaiseQuestion.jsx
-import { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import axios from "axios";
 
 const RaiseQuestion = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
-    question: '',
-    description: '',
-    userEmail: ''
+    question: "",
+    description: "",
+    userEmail: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.question.trim()) {
-      setError('Please enter your question');
+      setError("Please enter your question");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const response = await axios.post(
-        'https://islamic-answers-backend.onrender.com/api/user-questions',
-        formData
+        "https://islamic-answers-backend.onrender.com/api/user-questions",
+        formData,
       );
 
       // ✅ SUCCESS POPUP
       if (response.data.success) {
-        alert(`✅ Question Submitted Successfully!\n\n"${formData.question}"\n\nWe will review your question and provide an authentic answer with Quran & Hadith references.`);
-        
+        alert(
+          `✅ Question Submitted Successfully!\n\n"${formData.question}"\n\nWe will review your question and provide an authentic answer with Quran & Hadith references.`,
+        );
+
         setFormData({
-          question: '',
-          description: '',
-          userEmail: ''
+          question: "",
+          description: "",
+          userEmail: "",
         });
         if (onSuccess) onSuccess();
       }
     } catch (err) {
-      // ✅ 24 HOUR LIMIT POPUP
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Something went wrong';
-      
-      if (errorMessage.includes('24 hour')) {
-        alert("⏰ 24 Hour Rule\n\nYou can submit only 1 question per 24 hours.\n\nPlease wait 24 hours before asking another question.");
-      } else {
-        setError(errorMessage);
-      }
+      console.log(err);
+      // ✅ SIMPLE - ALWAYS SHOW 24 HOUR POPUP
+      alert(
+        "⏰ 24 Hour Limit\n\nYou can submit only 1 question per 24 hours.\n\nPlease wait 24 hours.",
+      );
+
+      setError("You have already submitted a question. Please wait 24 hours.");
     } finally {
       setLoading(false);
     }
@@ -106,19 +107,19 @@ const RaiseQuestion = ({ onSuccess }) => {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-lg">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-700 p-3 rounded-lg">{error}</div>
       )}
 
       <div className="flex justify-end space-x-4">
         <button
           type="button"
-          onClick={() => setFormData({
-            question: '',
-            description: '',
-            userEmail: ''
-          })}
+          onClick={() =>
+            setFormData({
+              question: "",
+              description: "",
+              userEmail: "",
+            })
+          }
           className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
         >
           Clear
@@ -128,13 +129,15 @@ const RaiseQuestion = ({ onSuccess }) => {
           disabled={loading}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg disabled:opacity-50"
         >
-          {loading ? 'Submitting...' : 'Submit Question'}
+          {loading ? "Submitting..." : "Submit Question"}
         </button>
       </div>
 
       <div className="text-sm text-gray-500 mt-4">
-        <p>Note: Your question will be reviewed by admin before being answered. 
-        You'll receive an email if you provided one.</p>
+        <p>
+          Note: Your question will be reviewed by admin before being answered.
+          You'll receive an email if you provided one.
+        </p>
       </div>
     </form>
   );
