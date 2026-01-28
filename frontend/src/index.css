@@ -1,1 +1,16 @@
 @import "tailwindcss";
+/* Add these styles for Hindi/Urdu support */
+.font-hindi {
+  font-family: 'Noto Sans Devanagari', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif;
+}
+
+.font-urdu {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.8;
+  text-align: right;
+}
+
+/* For better RTL support */
+[dir="rtl"] {
+  text-align: right;
+}

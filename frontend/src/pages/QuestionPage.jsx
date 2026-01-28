@@ -3,7 +3,7 @@ import { useState, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import QuestionList from '../components/QuestionList';
 import RaiseQuestion from '../components/RaiseQuestion';
-import { API } from '../utils/api'; // ✅ Use API instead of api
+import { API } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
 
@@ -28,19 +28,39 @@ QuestionCount.displayName = 'QuestionCount';
 const QuestionsPage = () => {
   const [showRaiseForm, setShowRaiseForm] = useState(false);
 
-  // React Query for optimized data fetching
+  // ✅ FIXED: Handle API response format properly
   const { 
-    data: questions = [], 
+    data: questionsData = {}, 
     isLoading, 
     error, 
     refetch,
     isRefetching 
   } = useQuery({
     queryKey: ['questions'],
-    queryFn: () => API.getQuestions(), // ✅ Use API here
+    queryFn: async () => {
+      const response = await API.getQuestions();
+      console.log('📊 API Response:', response);
+      
+      // Handle NEW format response
+      if (response && response.data && response.data.data) {
+        // NEW format: { success: true, data: [], count: number }
+        return { questions: response.data.data, count: response.data.count };
+      } else if (response && response.data && Array.isArray(response.data)) {
+        // OLD format: direct array
+        return { questions: response.data, count: response.data.length };
+      } else if (Array.isArray(response)) {
+        // Direct array response
+        return { questions: response, count: response.length };
+      }
+      return { questions: [], count: 0 };
+    },
     staleTime: 2 * 60 * 1000,
     retry: 2
   });
+
+  // Extract questions array
+  const questions = questionsData.questions || [];
+  const questionCount = questionsData.count || questions.length;
 
   // Memoized handlers
   const handleFormToggle = useCallback(() => {
@@ -55,15 +75,6 @@ const QuestionsPage = () => {
   const handleRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
-
-  // Remove unused useEffect or use it
-  // If you need to do something on mount, uncomment this:
-  /*
-  useEffect(() => {
-    // Initial setup if needed
-    console.log('QuestionsPage mounted');
-  }, []);
-  */
 
   // Loading state
   if (isLoading && !isRefetching) {
@@ -107,7 +118,7 @@ const QuestionsPage = () => {
           
           <button
             onClick={handleFormToggle}
-            className="flex-1 lg:flex-none px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5"
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5"
           >
             {showRaiseForm ? '← Back to Questions' : '➕ Ask Question'}
           </button>
@@ -134,7 +145,7 @@ const QuestionsPage = () => {
         </div>
       ) : (
         <>
-          <QuestionCount count={questions.length} />
+          <QuestionCount count={questionCount} />
           
           {questions.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm border">
@@ -147,7 +158,7 @@ const QuestionsPage = () => {
               </p>
               <button
                 onClick={handleFormToggle}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-medium"
+                className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-medium"
               >
                 Ask First Question
               </button>
