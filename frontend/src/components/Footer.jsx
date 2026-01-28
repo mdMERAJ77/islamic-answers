@@ -114,11 +114,20 @@ const Footer = () => {
             </p>
 
             <div className="space-y-3 mt-4">
+              {/* CHISTI HABIB */}
               <ResearchMember
-                name="Research Team: CHISTI HABIB & MD MERAJ"
-                role="Platform Developer & Content Coordinator"
-                education="B.Tech CS + Traditional Islamic Studies"
-                icon={<BookOpen size={18} className="text-green-400" />}
+                name="CHISTI HABIB"
+                role="Content Research Lead"
+                education="M.Tech in Computer Networking(Ongoing) + Islamic Studies"
+                icon={<BookOpen size={18} className="text-blue-400" />}
+              />
+
+              {/* MD MERAJ */}
+              <ResearchMember
+                name="MD MERAJ"
+                role="Technical Research Lead"
+                education="B.Tech Computer Science"
+                icon={<Cpu size={18} className="text-green-400" />}
               />
 
               <ResearchMember
