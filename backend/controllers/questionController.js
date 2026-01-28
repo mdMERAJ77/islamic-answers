@@ -1,6 +1,6 @@
 import Question from "../models/Question.js";
 
-// ✅ Get all questions (NEW FORMAT ONLY)
+// ✅ Get all questions
 export const getAllQuestions = async (req, res) => {
   try {
     const questions = await Question.find()
@@ -46,9 +46,11 @@ export const getQuestionById = async (req, res) => {
   }
 };
 
-// ✅ Create new question (STRICT NEW FORMAT ONLY)
+// ✅ STRICT NEW FORMAT ONLY - NO OLD FORMAT ACCEPTED
 export const createQuestion = async (req, res) => {
   try {
+    console.log("📨 Received data:", JSON.stringify(req.body, null, 2));
+    
     const { 
       question_en, 
       question_hi = "",
@@ -60,7 +62,7 @@ export const createQuestion = async (req, res) => {
       category = ""
     } = req.body;
 
-    // ✅ STRICT VALIDATION - NEW FORMAT ONLY
+    // ✅ STRICT VALIDATION - ONLY NEW FORMAT
     if (!question_en?.trim()) {
       return res.status(400).json({
         success: false,
@@ -75,22 +77,22 @@ export const createQuestion = async (req, res) => {
       });
     }
 
-    // ❌ REJECT any old format attempts
+    // ❌ REJECT OLD FORMAT COMPLETELY
     if (req.body.question) {
       return res.status(400).json({
         success: false,
-        error: "Old format not accepted. Use question_en instead of 'question'"
+        error: "OLD FORMAT REJECTED: Use 'question_en' instead of 'question'"
       });
     }
 
     if (req.body.answer && typeof req.body.answer === 'object') {
       return res.status(400).json({
         success: false,
-        error: "Old format not accepted. Use answer_en, answer_hi, answer_ur directly"
+        error: "OLD FORMAT REJECTED: Use 'answer_en', 'answer_hi', 'answer_ur' directly (not nested)"
       });
     }
 
-    // ✅ Clean references
+    // Clean references
     const cleanReferences = {
       quran: (references.quran || []).filter(q => 
         q.surah_en?.trim() || q.verse_en?.trim()
@@ -124,7 +126,7 @@ export const createQuestion = async (req, res) => {
       }))
     };
 
-    // ✅ Create new question
+    // Create new question
     const question = new Question({
       question_en: question_en.trim(),
       question_hi: question_hi.trim(),
@@ -140,7 +142,7 @@ export const createQuestion = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Question added successfully in bilingual format",
+      message: "✅ Question added successfully in NEW bilingual format",
       data: question
     });
 
@@ -149,62 +151,7 @@ export const createQuestion = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to add question",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-};
-
-// ✅ Update question
-export const updateQuestion = async (req, res) => {
-  try {
-    const updatedQuestion = await Question.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!updatedQuestion) {
-      return res.status(404).json({
-        success: false,
-        error: "Question not found"
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: "Question updated successfully",
-      data: updatedQuestion
-    });
-  } catch (error) {
-    console.error("Update error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to update question"
-    });
-  }
-};
-
-// ✅ Delete question
-export const deleteQuestion = async (req, res) => {
-  try {
-    const question = await Question.findByIdAndDelete(req.params.id);
-    
-    if (!question) {
-      return res.status(404).json({
-        success: false,
-        error: "Question not found"
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: "Question deleted successfully"
-    });
-  } catch (error) {
-    console.error("Delete error:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to delete question"
+      details: error.message
     });
   }
 };
