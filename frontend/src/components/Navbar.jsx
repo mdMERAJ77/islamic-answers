@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx - ICON FIXED
+// src/components/Navbar.jsx - FULL UPDATED
 import { useState, useEffect, memo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -9,6 +9,7 @@ import {
   LogIn,
   LogOut,
   Shield,
+  Heart, // 🆕 ADD Heart icon
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { API } from "../utils/api";
@@ -28,6 +29,8 @@ const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
         return <LogIn size={18} />;
       case "shield":
         return <Shield size={18} />;
+      case "heart": // 🆕 ADD Heart case
+        return <Heart size={18} />;
       default:
         return <Home size={18} />;
     }
@@ -65,23 +68,20 @@ const Navbar = () => {
 
   const isAdmin = authData?.isAuthenticated || false;
 
-  // Close menu on route change
-  // Navbar.jsx में ये useEffect change करें:
-  useEffect(() => {
-    // Always close menu on route change
-    const handleRouteChange = () => {
-      setIsMenuOpen(false);
-    };
-
-    // Add event listener for route changes
-    const unlisten = () => {
-      // Vite/React Router specific cleanup
-      window.addEventListener("popstate", handleRouteChange);
-      return () => window.removeEventListener("popstate", handleRouteChange);
-    };
-
-    return unlisten();
-  }, []); // Empty dependencies // Only location.pathname in dependencies
+  // Close menu on route change - FIXED VERSION
+// Navbar.jsx में सिर्फ useEffect बदलें
+useEffect(() => {
+  // Only run if menu is open
+  if (!isMenuOpen) return;
+  
+  // Use setTimeout to move state update to next tick
+  const timer = setTimeout(() => {
+    setIsMenuOpen(false);
+  }, 0);
+  
+  // Cleanup
+  return () => clearTimeout(timer);
+}, [location.pathname, isMenuOpen]); // Add isMenuOpen to dependencies
 
   const handleLogout = async () => {
     try {
@@ -104,7 +104,7 @@ const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-linear-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -131,6 +131,15 @@ const Navbar = () => {
               Q&A
             </NavLink>
 
+            {/* 🆕 ADD Donation Link - Always visible */}
+            <NavLink
+              to="/donate"
+              iconType="heart"
+              isActive={isActive("/donate")}
+            >
+              Donate
+            </NavLink>
+
             {isAdmin ? (
               <>
                 <NavLink
@@ -143,7 +152,7 @@ const Navbar = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 rounded-lg bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition flex items-center space-x-2 ml-2"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition flex items-center space-x-2 ml-2"
                 >
                   <LogOut size={18} />
                   <span>Logout</span>
@@ -193,6 +202,16 @@ const Navbar = () => {
                 Questions & Answers
               </NavLink>
 
+              {/* 🆕 ADD Donation Link in Mobile Menu */}
+              <NavLink
+                to="/donate"
+                iconType="heart"
+                isActive={isActive("/donate")}
+                onClick={closeMenu}
+              >
+                Donate
+              </NavLink>
+
               {isAdmin ? (
                 <>
                   <NavLink
@@ -209,7 +228,7 @@ const Navbar = () => {
                       handleLogout();
                       closeMenu();
                     }}
-                    className="w-full flex items-center space-x-3 p-3 rounded-lg bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition text-left"
+                    className="w-full flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition text-left"
                   >
                     <LogOut size={20} />
                     <span>Logout</span>

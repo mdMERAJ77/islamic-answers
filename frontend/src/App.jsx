@@ -11,6 +11,7 @@ import './App.css';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const QuestionsPage = lazy(() => import('./pages/QuestionPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const DonationPage = lazy(() => import('./pages/DonationPage')); // 🆕 ADD THIS LINE
 
 // Create a client
 const queryClient = new QueryClient({
@@ -35,6 +36,8 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/questions" element={<QuestionsPage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/donate" element={<DonationPage />} /> // 🆕 ADD THIS LINE
+
               </Routes>
             </Suspense>
           </div>
