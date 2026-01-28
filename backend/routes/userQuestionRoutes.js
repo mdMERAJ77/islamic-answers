@@ -1,26 +1,23 @@
+// backend/routes/userQuestionRoutes.js
 import express from 'express';
 import { 
   submitUserQuestion, 
   getUserQuestions,
+  updateQuestionStatus,
   deleteUserQuestion,
   checkQuestionStatus
 } from '../controllers/userQuestionController.js';
 import { authenticateAdmin } from '../middleware/authMiddleware.js';
-// ❌ TEMPORARY: Comment out rate limiter
-// import { userQuestionLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// ✅ 24-HOUR LIMITED ONLY (Temporary: No rate limiting)
-router.post('/', submitUserQuestion); // ❌ Remove: userQuestionLimiter
+// ✅ PUBLIC ROUTES
+router.post('/', submitUserQuestion); // Submit new question
+router.get('/status', checkQuestionStatus); // Check status
 
-// ✅ PUBLIC STATUS CHECK
-router.get('/status', checkQuestionStatus);
-
-// Get all user questions (Admin only)
-router.get('/', authenticateAdmin, getUserQuestions);
-
-// Delete user question (Admin only)
-router.delete('/:id', authenticateAdmin, deleteUserQuestion);
+// ✅ ADMIN ROUTES (Require authentication)
+router.get('/', authenticateAdmin, getUserQuestions); // Get all questions
+router.put('/:id', authenticateAdmin, updateQuestionStatus); // Update status
+router.delete('/:id', authenticateAdmin, deleteUserQuestion); // Delete question
 
 export default router;

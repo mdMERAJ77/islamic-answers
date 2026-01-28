@@ -1,44 +1,38 @@
-// backend/controllers/userQuestionController.js - FINAL WORKING
+// backend/controllers/userQuestionController.js
 import UserQuestion from '../models/UserQuestion.js';
 
-// Submit a new question from user - WITH 24-HOUR LIMIT
+// ✅ Submit new question - WITH description field
 export const submitUserQuestion = async (req, res) => {
   try {
-    console.log('🔥 FULL REQUEST BODY:', req.body);
-    console.log('🔥 REQUEST HEADERS:', req.headers['content-type']);
+    console.log('📥 User Question Request:', req.body);
     
-    // ✅ FIX: Check multiple possible email field names
-    const { question } = req.body;
+    // ✅ Extract all possible fields
+    const { 
+      question, 
+      description = '', 
+      userEmail,  // Frontend sends 'userEmail'
+      email 
+    } = req.body;
     
-    // Try different email field names that frontend might use
-    const email = req.body.email || 
-                  req.body.userEmail || 
-                  req.body.user_email ||
-                  req.body.useremail ||
-                  req.body.Email ||
-                  req.body.eMail;
+    // ✅ Determine email (frontend sends 'userEmail')
+    const finalEmail = userEmail || email || '';
     
-    console.log('Extracted email:', email);
-    console.log('Extracted question:', question);
-    
-    // ✅ MINIMAL VALIDATION ONLY
-    if (!email || email.trim() === '') {
+    if (!finalEmail.trim()) {
       return res.status(400).json({
         success: false, 
-        error: 'Email required. Please provide your email address.',
-        receivedBody: req.body // Debug info
+        error: 'Email is required'
       });
     }
     
-    if (!question || question.trim().length < 5) {
+    if (!question || question.trim().length < 3) {
       return res.status(400).json({
         success: false, 
-        error: 'Question too short (minimum 5 characters)'
+        error: 'Question is required (minimum 3 characters)'
       });
     }
     
-    // ✅ SIMPLE 24-HOUR CHECK
-    const cleanEmail = email.toLowerCase().trim();
+    // ✅ 24-HOUR CHECK
+    const cleanEmail = finalEmail.toLowerCase().trim();
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
     const existing = await UserQuestion.findOne({
@@ -49,34 +43,36 @@ export const submitUserQuestion = async (req, res) => {
     if (existing) {
       return res.status(400).json({
         success: false,
-        error: '24-hour limit reached! You can ask only 1 question every 24 hours.',
-        nextQuestionTime: new Date(existing.createdAt.getTime() + 24 * 60 * 60 * 1000)
+        error: '24-hour limit reached! You can ask only 1 question every 24 hours.'
       });
     }
     
-    // ✅ SAVE
-    const newQ = new UserQuestion({
+    // ✅ SAVE WITH DESCRIPTION
+    const newQuestion = new UserQuestion({
       question: question.trim(),
+      description: (description || '').trim(),
       email: cleanEmail,
-      ipAddress: req.ip || 'unknown',
+      ipAddress: req.ip || req.headers['x-forwarded-for'] || 'unknown',
       status: 'pending'
     });
     
-    await newQ.save();
+    await newQuestion.save();
     
     res.json({
       success: true,
-      message: 'Question submitted successfully! Admin will review it.',
+      message: 'Question submitted successfully!',
       data: {
-        id: newQ._id,
-        question: newQ.question,
-        status: newQ.status,
-        nextQuestionTime: new Date(newQ.createdAt.getTime() + 24 * 60 * 60 * 1000)
+        id: newQuestion._id,
+        question: newQuestion.question,
+        description: newQuestion.description,
+        email: newQuestion.email,
+        status: newQuestion.status,
+        createdAt: newQuestion.createdAt
       }
     });
     
   } catch (error) {
-    console.error('ERROR:', error);
+    console.error('❌ User Question Error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error: ' + error.message
@@ -84,19 +80,30 @@ export const submitUserQuestion = async (req, res) => {
   }
 };
 
-// Get all user questions (for admin)
+// ✅ Get all user questions (for admin) - WITH DESCRIPTION
 export const getUserQuestions = async (req, res) => {
   try {
     const questions = await UserQuestion.find()
       .sort({ createdAt: -1 })
-      .select('-__v');
+      .select('-__v -ipAddress');
 
     res.json({
       success: true,
       count: questions.length,
-      data: questions
+      data: questions.map(q => ({
+        _id: q._id,
+        question: q.question,
+        description: q.description,  // ✅ Includes description
+        email: q.email,
+        status: q.status,
+        answer: q.answer,
+        createdAt: q.createdAt,
+        updatedAt: q.updatedAt,
+        answeredAt: q.answeredAt
+      }))
     });
   } catch (error) {
+    console.error('Get questions error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch questions'
@@ -104,14 +111,55 @@ export const getUserQuestions = async (req, res) => {
   }
 };
 
-// Delete a user question
+// ✅ Update question status (Admin)
+export const updateQuestionStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, answer = '' } = req.body;
+    
+    const updateData = { status };
+    
+    if (status === 'answered') {
+      updateData.answer = answer;
+      updateData.answeredAt = new Date();
+    }
+    
+    const updated = await UserQuestion.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+    
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        error: 'Question not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: `Question marked as ${status}`,
+      data: updated
+    });
+    
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update question'
+    });
+  }
+};
+
+// ✅ Delete question (Admin)
 export const deleteUserQuestion = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedQuestion = await UserQuestion.findByIdAndDelete(id);
+    const deleted = await UserQuestion.findByIdAndDelete(id);
 
-    if (!deletedQuestion) {
+    if (!deleted) {
       return res.status(404).json({
         success: false,
         error: 'Question not found'
@@ -130,7 +178,7 @@ export const deleteUserQuestion = async (req, res) => {
   }
 };
 
-// Check question status by email
+// ✅ Check question status by email
 export const checkQuestionStatus = async (req, res) => {
   try {
     const { email } = req.query;
@@ -147,39 +195,21 @@ export const checkQuestionStatus = async (req, res) => {
       email: cleanEmail
     }).sort({ createdAt: -1 }).limit(10);
     
-    if (questions.length === 0) {
-      return res.json({
-        success: true,
-        message: 'No questions found for this email',
-        questions: []
-      });
-    }
-    
-    const formatted = questions.map(q => {
-      let statusText = 'Pending';
-      if (q.status === 'answered') statusText = 'Answered';
-      if (q.status === 'rejected') statusText = 'Rejected';
-      
-      return {
-        id: q._id,
-        question: q.question,
-        status: q.status,
-        statusText: statusText,
-        submittedOn: q.createdAt.toLocaleDateString('en-IN'),
-        submittedAt: q.createdAt.toLocaleTimeString('en-IN'),
-        answeredOn: q.answeredAt ? q.answeredAt.toLocaleDateString('en-IN') : null,
-        answer: q.answer || 'Not answered yet'
-      };
-    });
-    
     res.json({
       success: true,
       count: questions.length,
-      questions: formatted
+      questions: questions.map(q => ({
+        id: q._id,
+        question: q.question,
+        description: q.description,
+        status: q.status,
+        submittedOn: q.createdAt.toLocaleDateString('en-IN'),
+        answer: q.answer || ''
+      }))
     });
     
   } catch (error) {
-    console.error('Error checking status:', error);
+    console.error('Status check error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to check status'
