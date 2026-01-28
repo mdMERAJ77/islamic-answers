@@ -1,19 +1,22 @@
-// routes/userQuestionRoutes.js
+// backend/routes/userQuestionRoutes.js - UPDATED
 import express from 'express';
 import { 
-  raiseQuestion, 
-  getUserQuestions, 
-  updateQuestionStatus 
+  submitUserQuestion, 
+  getUserQuestions,
+  deleteUserQuestion 
 } from '../controllers/userQuestionController.js';
 import { authenticateAdmin } from '../middleware/authMiddleware.js';
+import { userQuestionLimiter } from '../middleware/rateLimiter.js'; // 🆕 IMPORT
 
 const router = express.Router();
 
-// Public route - anyone can raise question
-router.post('/', raiseQuestion);
+// 🆕 APPLY RATE LIMITING TO USER QUESTION SUBMISSION
+router.post('/', userQuestionLimiter, submitUserQuestion);
 
-// Admin only routes
-router.get('/', authenticateAdmin, getUserQuestions); // Get all user questions
-router.put('/:id', authenticateAdmin, updateQuestionStatus); // Update status
+// Get all user questions (Admin only)
+router.get('/', authenticateAdmin, getUserQuestions);
+
+// Delete user question (Admin only)
+router.delete('/:id', authenticateAdmin, deleteUserQuestion);
 
 export default router;
