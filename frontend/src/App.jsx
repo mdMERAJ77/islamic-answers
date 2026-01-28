@@ -1,27 +1,47 @@
-// src/App.jsx
+// src/App.jsx - UPDATED
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navbar from './components/Navbar';
-import HomePage from './pages/HomePage';
-import QuestionsPage from './pages/QuestionPage';
-import AdminPage from './pages/AdminPage';
-import Footer from './components/Footer'; 
+import Footer from './components/Footer';
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
+
+// Lazy load pages
+const HomePage = lazy(() => import('./pages/HomePage'));
+const QuestionsPage = lazy(() => import('./pages/QuestionPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/questions" element={<QuestionsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-          </Routes>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <div className="container mx-auto px-4 py-8">
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/questions" element={<QuestionsPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+              </Routes>
+            </Suspense>
+          </div>
+          <Footer />
         </div>
-         <Footer />
-      </div>
-    </Router>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
