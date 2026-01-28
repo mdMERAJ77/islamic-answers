@@ -1,22 +1,18 @@
-// backend/routes/questionRoutes.js - WITH TEMPORARY AUTH
 import express from 'express';
-import jwt from 'jsonwebtoken'; // ✅ ADD THIS IMPORT
+import jwt from 'jsonwebtoken';
 import { 
   getAllQuestions, 
-  getQuestionBySlug, 
-  addQuestion 
+  getQuestionById, 
+  createQuestion,
+  updateQuestion,
+  deleteQuestion
 } from '../controllers/questionController.js';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllQuestions);
-router.get('/:id', getQuestionBySlug);
-
-// Admin only routes with manual auth check
-router.post('/', async (req, res, next) => {
+// ✅ Admin middleware
+const authenticateAdmin = async (req, res, next) => {
   try {
-    // Check token manually
     const token = req.cookies.token;
     
     if (!token) {
@@ -26,7 +22,6 @@ router.post('/', async (req, res, next) => {
       });
     }
     
-    // Verify and continue
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
     req.user = decoded;
     next();
@@ -36,6 +31,15 @@ router.post('/', async (req, res, next) => {
       error: 'Invalid session. Please login.' 
     });
   }
-}, addQuestion);
+};
+
+// ✅ Public routes
+router.get('/', getAllQuestions);
+router.get('/:id', getQuestionById);
+
+// ✅ Admin only routes
+router.post('/', authenticateAdmin, createQuestion);
+router.put('/:id', authenticateAdmin, updateQuestion);
+router.delete('/:id', authenticateAdmin, deleteQuestion);
 
 export default router;
