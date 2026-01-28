@@ -169,75 +169,88 @@ const AddQuestionForm = () => {
 
   // ✅ Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!formData.question_en.trim()) {
-      setMessage({ type: 'error', text: 'English question is required' });
-      return;
-    }
+  e.preventDefault();
+  
+  // Validation
+  if (!formData.question_en.trim()) {
+    setMessage({ type: 'error', text: 'English question is required' });
+    return;
+  }
 
-    if (!formData.answer_en.trim()) {
-      setMessage({ type: 'error', text: 'English answer is required' });
-      return;
-    }
+  if (!formData.answer_en.trim()) {
+    setMessage({ type: 'error', text: 'English answer is required' });
+    return;
+  }
 
-    setLoading(true);
-    setMessage({ type: '', text: '' });
+  setLoading(true);
+  setMessage({ type: '', text: '' });
 
-    try {
-      // Prepare data in NEW FORMAT
-      const dataToSend = {
-        question_en: formData.question_en.trim(),
-        question_hi: formData.question_hi.trim(),
-        answer_en: formData.answer_en.trim(),
-        answer_hi: formData.answer_hi.trim(),
-        answer_ur: formData.answer_ur.trim(),
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        category: formData.category.trim(),
-        references: formData.references
-      };
+  try {
+    // ✅ Prepare data in STRICT NEW FORMAT
+    const dataToSend = {
+      question_en: formData.question_en.trim(),
+      question_hi: formData.question_hi.trim(),
+      answer_en: formData.answer_en.trim(),
+      answer_hi: formData.answer_hi.trim(),
+      answer_ur: formData.answer_ur.trim(),
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      category: formData.category.trim(),
+      references: formData.references
+    };
 
-      console.log("Sending data (NEW FORMAT):", dataToSend);
+    console.log("📤 Sending to PRODUCTION:", dataToSend);
 
-      const response = await axios.post(
-        'https://islamic-answers-backend.onrender.com/api/questions',
-        dataToSend,
-        { withCredentials: true }
-      );
+    // ✅ DIRECT PRODUCTION API CALL
+    const response = await axios.post(
+      'https://islamic-answers-backend.onrender.com/api/questions',
+      dataToSend,
+      { withCredentials: true }
+    );
 
-      if (response.data.success) {
-        setMessage({ 
-          type: 'success', 
-          text: '✅ Question added successfully in bilingual format!' 
-        });
-        
-        // Reset form
-        setFormData({
-          question_en: '',
-          question_hi: '',
-          answer_en: '',
-          answer_hi: '',
-          answer_ur: '',
-          tags: '',
-          category: '',
-          references: {
-            quran: [],
-            hadith: [],
-            videos: []
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
+    if (response.data.success) {
       setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.error || 'Error adding question' 
+        type: 'success', 
+        text: '✅ Question added successfully!' 
       });
-    } finally {
-      setLoading(false);
+      
+      // Reset form
+      setFormData({
+        question_en: '',
+        question_hi: '',
+        answer_en: '',
+        answer_hi: '',
+        answer_ur: '',
+        tags: '',
+        category: '',
+        references: {
+          quran: [],
+          hadith: [],
+          videos: []
+        }
+      });
     }
-  };
+  } catch (error) {
+    console.error("❌ Production Error:", error.response?.data || error.message);
+    
+    // Better error handling
+    let errorMsg = 'Error adding question';
+    
+    if (error.response?.data?.error) {
+      errorMsg = `Server: ${error.response.data.error}`;
+    } else if (error.response?.data?.message) {
+      errorMsg = `Server: ${error.response.data.message}`;
+    } else if (error.message.includes('Network')) {
+      errorMsg = 'Network error. Check internet connection.';
+    }
+    
+    setMessage({ 
+      type: 'error', 
+      text: errorMsg 
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ✅ Load sample data in NEW FORMAT
   const loadSampleData = () => {
