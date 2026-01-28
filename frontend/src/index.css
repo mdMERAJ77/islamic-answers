@@ -1,16 +1,24 @@
 @import "tailwindcss";
-/* Add these styles for Hindi/Urdu support */
+/* Bilingual Font Classes */
 .font-hindi {
   font-family: 'Noto Sans Devanagari', 'Nirmala UI', 'Segoe UI', system-ui, sans-serif;
 }
 
 .font-urdu {
   font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', system-ui, sans-serif;
-  line-height: 1.8;
   text-align: right;
+  direction: rtl;
+  line-height: 1.8;
 }
 
-/* For better RTL support */
-[dir="rtl"] {
-  text-align: right;
+/* Smooth transitions */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+/* Gradient text for headings */
+.gradient-text {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
