@@ -1,5 +1,24 @@
-// components/Footer.jsx
+// src/components/Footer.jsx - CORRECTED
+import { memo } from 'react';
 import { Mail, Instagram, MapPin, Heart } from "lucide-react";
+
+// Memoized components - CORRECTED
+const ContactItem = memo(({ icon, children, href }) => {
+  const content = (
+    <div className="flex items-center space-x-3">
+      {icon}
+      <span className="text-gray-300">{children}</span>
+    </div>
+  );
+
+  return href ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition">
+      {content}
+    </a>
+  ) : content;
+});
+
+ContactItem.displayName = 'ContactItem';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -7,7 +26,6 @@ const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white mt-16">
       <div className="container mx-auto px-4 py-8 md:py-12">
-        {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* About Section */}
           <div className="space-y-4">
@@ -17,7 +35,7 @@ const Footer = () => {
               </div>
               <h3 className="text-xl font-bold">Islamic Q&A</h3>
             </div>
-            <p className="text-gray-300 text-sm md:text-base">
+            <p className="text-gray-300 text-sm md:text-base leading-relaxed">
               A platform dedicated to providing authentic Islamic knowledge,
               clearing misconceptions, and answering questions with proper
               references from Quran and Hadith.
@@ -30,25 +48,24 @@ const Footer = () => {
               Contact Developer
             </h4>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <Mail size={20} className="text-blue-400" />
-                <span className="text-gray-300">riseofummah786@gmail.com</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <a
-                  href="https://instagram.com/md12_3meraj"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-3"
-                >
-                  <Instagram size={20} className="text-blue-400"/>
-                  <span className="text-gray-300">Follow on Instagram</span>
-                </a>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin size={20} className="text-blue-400" />
-                <span className="text-gray-300">India</span>
-              </div>
+              <ContactItem 
+                icon={<Mail size={20} className="text-blue-400 flex-shrink-0" />}
+              >
+                riseofummah786@gmail.com
+              </ContactItem>
+              
+              <ContactItem 
+                icon={<Instagram size={20} className="text-blue-400 flex-shrink-0" />}
+                href="https://instagram.com/md12_3meraj"
+              >
+                Follow on Instagram
+              </ContactItem>
+              
+              <ContactItem 
+                icon={<MapPin size={20} className="text-blue-400 flex-shrink-0" />}
+              >
+                India
+              </ContactItem>
             </div>
           </div>
 
@@ -58,38 +75,21 @@ const Footer = () => {
               Quick Links
             </h4>
             <div className="space-y-2">
-              <a
-                href="/"
-                className="block text-gray-300 hover:text-white transition hover:translate-x-1"
-              >
-                Home
-              </a>
-              <a
-                href="/questions"
-                className="block text-gray-300 hover:text-white transition hover:translate-x-1"
-              >
-                Questions & Answers
-              </a>
-              <a
-                href="/questions"
-                className="block text-gray-300 hover:text-white transition hover:translate-x-1"
-              >
-                Ask a Question
-              </a>
-              <a
-                href="/admin"
-                className="block text-gray-300 hover:text-white transition hover:translate-x-1"
-              >
-                Admin Login
-              </a>
+              {['/', '/questions', '/questions', '/admin'].map((href, idx) => (
+                <a
+                  key={idx}
+                  href={href}
+                  className="block text-gray-300 hover:text-white transition hover:translate-x-1"
+                >
+                  {['Home', 'Questions & Answers', 'Ask a Question', 'Admin Login'][idx]}
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Divider */}
         <div className="border-t border-gray-800 my-8"></div>
 
-        {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-gray-400 text-sm text-center md:text-left">
             © {currentYear} Islamic Q&A Platform. All rights reserved.
@@ -110,8 +110,6 @@ const Footer = () => {
             <span className="sm:hidden">v1.0</span>
           </div>
         </div>
-
-        
       </div>
     </footer>
   );

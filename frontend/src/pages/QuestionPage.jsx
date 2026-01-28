@@ -1,143 +1,174 @@
-// Pages/QuestionsPage.jsx - Complete fixed version
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+// src/pages/QuestionPage.jsx - FIXED VERSION
+import { useState, useCallback, memo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import QuestionList from '../components/QuestionList';
 import RaiseQuestion from '../components/RaiseQuestion';
+import { API } from '../utils/api'; // ✅ Use API instead of api
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorDisplay from '../components/ErrorDisplay';
+
+// Memoized components for performance
+const QuestionCount = memo(({ count }) => (
+  <div className="mb-6 text-gray-600 flex justify-between items-center">
+    <p className="font-medium">Found {count} question{count !== 1 ? 's' : ''}</p>
+    {count > 0 && (
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+        aria-label="Scroll to top"
+      >
+        ↑ Back to top
+      </button>
+    )}
+  </div>
+));
+
+QuestionCount.displayName = 'QuestionCount';
 
 const QuestionsPage = () => {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showRaiseForm, setShowRaiseForm] = useState(false);
-  const [error, setError] = useState('');
 
-  // Data fetch function
-  const fetchQuestions = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const response = await axios.get('https://islamic-answers-backend.onrender.com/api/questions');
-      
-      // Check if response has data
-      if (response.data && Array.isArray(response.data)) {
-        setQuestions(response.data);
-      } else {
-        setQuestions([]);
-        setError('No questions found');
-      }
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-      setError('Failed to load questions. Please try again.');
-      setQuestions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // React Query for optimized data fetching
+  const { 
+    data: questions = [], 
+    isLoading, 
+    error, 
+    refetch,
+    isRefetching 
+  } = useQuery({
+    queryKey: ['questions'],
+    queryFn: () => API.getQuestions(), // ✅ Use API here
+    staleTime: 2 * 60 * 1000,
+    retry: 2
+  });
 
-  // Fetch data on component mount
-  useEffect(() => {
-    // IIFE use karo to avoid the warning
-    (async () => {
-      await fetchQuestions();
-    })();
+  // Memoized handlers
+  const handleFormToggle = useCallback(() => {
+    setShowRaiseForm(prev => !prev);
   }, []);
 
-  // Form toggle handler
-  const handleFormToggle = () => {
-    setShowRaiseForm(!showRaiseForm);
-  };
-
-  // Question submit success handler
-  const handleQuestionSubmitSuccess = () => {
+  const handleQuestionSubmitSuccess = useCallback(() => {
     setShowRaiseForm(false);
-    alert('Question submitted successfully! Admin will review it.');
-    fetchQuestions(); // Refresh the list
-  };
+    refetch();
+  }, [refetch]);
 
-  // Refresh button handler
-  const handleRefresh = () => {
-    fetchQuestions();
-  };
+  const handleRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // Remove unused useEffect or use it
+  // If you need to do something on mount, uncomment this:
+  /*
+  useEffect(() => {
+    // Initial setup if needed
+    console.log('QuestionsPage mounted');
+  }, []);
+  */
+
+  // Loading state
+  if (isLoading && !isRefetching) {
+    return <LoadingSpinner text="Loading questions..." />;
+  }
+
+  // Error state
+  if (error && !isRefetching) {
+    return <ErrorDisplay error={error} onRetry={handleRefresh} />;
+  }
 
   return (
     <div className="min-h-screen">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Islamic Questions & Answers
-        </h1>
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+            Islamic Questions & Answers
+          </h1>
+          <p className="text-gray-600 mt-2 max-w-3xl">
+            Authentic answers with references from Quran, Hadith, and trusted scholars
+          </p>
+        </div>
         
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
           <button
             onClick={handleRefresh}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex-1 sm:flex-none"
-            disabled={loading}
+            disabled={isRefetching}
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            aria-label="Refresh questions"
           >
-            {loading ? 'Loading...' : '🔄 Refresh'}
+            {isRefetching ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Refreshing...
+              </>
+            ) : (
+              '🔄 Refresh'
+            )}
           </button>
           
           <button
             onClick={handleFormToggle}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1 sm:flex-none"
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5"
           >
-            {showRaiseForm ? '← Back' : '➕ Ask Question'}
+            {showRaiseForm ? '← Back to Questions' : '➕ Ask Question'}
           </button>
         </div>
       </div>
 
-      {error && !loading && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
-          <div className="flex justify-between items-center">
-            <span>{error}</span>
-            <button 
-              onClick={handleRefresh}
-              className="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Main Content */}
       {showRaiseForm ? (
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">
-            Submit Your Question
-          </h2>
+        <div className="bg-white p-6 lg:p-8 rounded-2xl shadow-lg border mb-10">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <span className="text-2xl">❓</span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Submit Your Question
+              </h2>
+              <p className="text-gray-600 mt-1">
+                We'll provide authentic answers with proper references
+              </p>
+            </div>
+          </div>
           <RaiseQuestion onSuccess={handleQuestionSubmitSuccess} />
         </div>
       ) : (
         <>
-          {!loading && !error && (
-            <div className="mb-6 text-gray-600 flex justify-between items-center">
-              <p>Found {questions.length} questions</p>
-              {questions.length > 0 && (
-                <button 
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  ↑ Back to top
-                </button>
-              )}
-            </div>
-          )}
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading questions...</p>
-            </div>
-          ) : questions.length === 0 && !error ? (
-            <div className="text-center py-12 bg-white rounded-xl shadow">
-              <p className="text-gray-500 text-lg mb-4">No questions available yet.</p>
+          <QuestionCount count={questions.length} />
+          
+          {questions.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border">
+              <div className="text-5xl mb-6">📚</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                No questions yet
+              </h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Be the first to ask a question about Islam.
+              </p>
               <button
                 onClick={handleFormToggle}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-medium"
               >
-                Be the first to ask a question
+                Ask First Question
               </button>
             </div>
           ) : (
-            <QuestionList questions={questions} />
+            <>
+              <QuestionList questions={questions} />
+              
+              {/* Scroll to top for large lists */}
+              {questions.length > 5 && (
+                <div className="fixed bottom-6 right-6 z-40">
+                  <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all"
+                    aria-label="Scroll to top"
+                  >
+                    ↑
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
