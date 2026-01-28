@@ -1,4 +1,3 @@
-// backend/models/UserQuestion.js - UPDATED
 import mongoose from 'mongoose';
 
 const userQuestionSchema = new mongoose.Schema({
@@ -11,6 +10,7 @@ const userQuestionSchema = new mongoose.Schema({
   },
   email: {
     type: String,
+    required: true, // ✅ ADD REQUIRED
     trim: true,
     lowercase: true,
     match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address']
@@ -24,22 +24,23 @@ const userQuestionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'reviewed', 'rejected'],
+    enum: ['pending', 'answered', 'rejected'], // ✅ CHANGED 'reviewed' to 'answered'
     default: 'pending'
   },
-  adminNotes: {
+  answer: { // ✅ ADD ANSWER FIELD
     type: String,
-    trim: true
+    default: ''
   },
-  reviewedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin'
+  adminNote: { // ✅ RENAME TO adminNote (singular)
+    type: String,
+    trim: true,
+    default: ''
   },
-  reviewedAt: {
+  answeredAt: { // ✅ ADD ANSWERED AT FIELD
     type: Date
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt
+  timestamps: true
 });
 
 // Index for better query performance
@@ -47,6 +48,9 @@ userQuestionSchema.index({ createdAt: -1 });
 userQuestionSchema.index({ ipAddress: 1, createdAt: -1 });
 userQuestionSchema.index({ status: 1 });
 
-const UserQuestion = mongoose.model('UserQuestion', userQuestionSchema);
+// ✅ ADD THESE 2 LINES (24-hour limit ke liye)
+userQuestionSchema.index({ email: 1, createdAt: 1 });
+userQuestionSchema.index({ ipAddress: 1, createdAt: 1 });
 
+const UserQuestion = mongoose.model('UserQuestion', userQuestionSchema);
 export default UserQuestion;

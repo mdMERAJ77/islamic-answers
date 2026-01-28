@@ -2,15 +2,19 @@ import express from 'express';
 import { 
   submitUserQuestion, 
   getUserQuestions,
-  deleteUserQuestion 
+  deleteUserQuestion,
+  checkQuestionStatus  // ✅ ADD THIS
 } from '../controllers/userQuestionController.js';
 import { authenticateAdmin } from '../middleware/authMiddleware.js';
-import { userQuestionLimiter } from '../middleware/rateLimiter.js'; // ✅ Import
+import { userQuestionLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
-// ✅ APPLY RATE LIMITING HERE (MOST IMPORTANT)
+// ✅ 24-HOUR LIMITED + RATE LIMITED QUESTION SUBMISSION
 router.post('/', userQuestionLimiter, submitUserQuestion);
+
+// ✅ PUBLIC STATUS CHECK (Kisi ko bhi)
+router.get('/status', checkQuestionStatus);
 
 // Get all user questions (Admin only)
 router.get('/', authenticateAdmin, getUserQuestions);

@@ -2,13 +2,44 @@
 import UserQuestion from '../models/UserQuestion.js';
 
 // Submit a new question from user - WITH VALIDATION
+// Submit a new question from user - WITH 24-HOUR LIMIT
 export const submitUserQuestion = async (req, res) => {
   try {
     const { question, email } = req.body;
 
-    // === VALIDATION CHECKS ===
+    // === 1. 24-HOUR LIMIT CHECK (SABSE PEHLE) ===
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
-    // 1. Required field check
+    // Check by email OR IP (last 24 hours)
+    const existingQuestion = await UserQuestion.findOne({
+      $or: [
+        { email: email ? email.toLowerCase().trim() : null },
+        { ipAddress: req.ip }
+      ],
+      createdAt: { $gte: oneDayAgo }
+    });
+    
+    if (existingQuestion) {
+      const hoursLeft = 24 - Math.floor((Date.now() - existingQuestion.createdAt) / (60 * 60 * 1000));
+      
+      return res.status(429).json({
+        success: false,
+        error: '24 hours mein sirf 1 question!',
+        message: `Aap ${hoursLeft} hours baad naya question puch sakte hain`,
+        previousQuestion: {
+          id: existingQuestion._id,
+          question: existingQuestion.question.substring(0, 80) + '...',
+          status: existingQuestion.status,
+          askedOn: existingQuestion.createdAt.toLocaleDateString('en-IN'),
+          askedAt: existingQuestion.createdAt.toLocaleTimeString('en-IN')
+        },
+        nextQuestionTime: new Date(existingQuestion.createdAt.getTime() + 24 * 60 * 60 * 1000)
+      });
+    }
+
+    // === 2. VALIDATION CHECKS ===
+    
+    // Required field check
     if (!question || question.trim().length === 0) {
       return res.status(400).json({
         success: false,
@@ -16,7 +47,7 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // 2. Minimum length check (10 characters)
+    // Minimum length check (10 characters)
     if (question.trim().length < 10) {
       return res.status(400).json({
         success: false,
@@ -24,7 +55,7 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // 3. Maximum length check (500 characters)
+    // Maximum length check (500 characters)
     if (question.length > 500) {
       return res.status(400).json({
         success: false,
@@ -32,7 +63,7 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // 4. Email validation (if provided)
+    // Email validation (if provided)
     if (email && email.trim() !== '') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -43,25 +74,7 @@ export const submitUserQuestion = async (req, res) => {
       }
     }
 
-    // 5. Duplicate question check (last 24 hours from same IP)
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
-    const existingQuestion = await UserQuestion.findOne({
-      $or: [
-        { question: { $regex: new RegExp(question.substring(0, 30), 'i') } },
-        { ipAddress: req.ip }
-      ],
-      createdAt: { $gte: twentyFourHoursAgo }
-    });
-
-    if (existingQuestion) {
-      return res.status(400).json({
-        success: false,
-        error: 'Similar question already submitted recently. Please check existing questions.'
-      });
-    }
-
-    // 6. Spam word filter (basic)
+    // Spam word filter (basic)
     const spamWords = [
       'http://', 'https://', 'www.', '.com', '.net', '.org',
       'buy', 'sell', 'cheap', 'offer', 'discount', 'click here',
@@ -79,12 +92,13 @@ export const submitUserQuestion = async (req, res) => {
       });
     }
 
-    // === SAVE QUESTION ===
+    // === 3. SAVE QUESTION ===
     const newQuestion = new UserQuestion({
       question: question.trim(),
-      email: email ? email.trim() : null,
-      ipAddress: req.ip, // Store IP for tracking
-      userAgent: req.headers['user-agent'] // Store browser info
+      email: email ? email.trim().toLowerCase() : null,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      status: 'pending'
     });
 
     await newQuestion.save();
@@ -95,14 +109,15 @@ export const submitUserQuestion = async (req, res) => {
       data: {
         id: newQuestion._id,
         question: newQuestion.question,
-        submittedAt: newQuestion.createdAt
+        status: newQuestion.status,
+        submittedAt: newQuestion.createdAt,
+        note: '24 hours ke baad hi naya question puch sakte hain'
       }
     });
 
   } catch (error) {
     console.error('Error submitting question:', error);
     
-    // Handle specific errors
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         success: false,
@@ -159,6 +174,75 @@ export const deleteUserQuestion = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete question'
+    });
+  }
+};
+
+// ✅ Check question status by email
+// ✅ Check question status by email
+export const checkQuestionStatus = async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email address required'
+      });
+    }
+    
+    const questions = await UserQuestion.find({
+      email: email.toLowerCase().trim()
+    }).sort({ createdAt: -1 }).limit(10);
+    
+    if (questions.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No questions found for this email',
+        questions: []
+      });
+    }
+    
+    const formatted = questions.map(q => {
+      let statusText = '';
+      if (q.status === 'pending') statusText = '⏳ Pending - Under review';
+      if (q.status === 'answered') statusText = '✅ Answered';
+      if (q.status === 'rejected') statusText = '❌ Rejected';
+      
+      // Check if user can ask new question
+      const canAskNew = !q.createdAt || 
+        (Date.now() - q.createdAt) > 24 * 60 * 60 * 1000;
+      
+      return {
+        id: q._id,
+        question: q.question,
+        status: q.status,
+        statusText: statusText,
+        submittedOn: q.createdAt.toLocaleDateString('en-IN'),
+        submittedAt: q.createdAt.toLocaleTimeString('en-IN'),
+        answeredOn: q.answeredAt ? q.answeredAt.toLocaleDateString('en-IN') : null,
+        answer: q.answer || 'Not answered yet',
+        adminNote: q.adminNote || '',
+        canAskNew: canAskNew,
+        nextQuestionTime: canAskNew ? null : 
+          new Date(q.createdAt.getTime() + 24 * 60 * 60 * 1000).toLocaleString('en-IN')
+      };
+    });
+    
+    res.json({
+      success: true,
+      count: questions.length,
+      questions: formatted,
+      message: questions.length > 0 ? 
+        `Found ${questions.length} question(s)` : 
+        'No questions found'
+    });
+    
+  } catch (error) {
+    console.error('Error checking status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check status'
     });
   }
 };
