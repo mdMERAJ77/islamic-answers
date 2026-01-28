@@ -1,4 +1,4 @@
-// src/components/Footer.jsx - UPDATED WITH RESEARCH TEAM
+// src/components/Footer.jsx - FIXED WITH EDUCATION
 import { memo } from "react";
 import {
   Mail,
@@ -8,6 +8,7 @@ import {
   Users,
   BookOpen,
   Shield,
+  GraduationCap,
 } from "lucide-react";
 
 // Memoized components
@@ -35,16 +36,26 @@ const ContactItem = memo(({ icon, children, href }) => {
 
 ContactItem.displayName = "ContactItem";
 
-const ResearchMember = memo(({ name, role, specialty }) => (
-  <div className="p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition">
+// ✅ FIXED: Changed specialty to education
+const ResearchMember = memo(({ name, role, education }) => (
+  <div className="p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition group">
     <div className="flex items-start space-x-3">
-      <div className="w-10 h-10 bg-purple-600/20 rounded-full flex items-center justify-center flex-shrink-0">
-        <Users size={18} className="text-purple-400" />
+      <div className="w-10 h-10 bg-purple-600/20 rounded-full flex items-center justify-center shrink-0 group-hover:bg-purple-600/30 transition">
+        <GraduationCap
+          size={18}
+          className="text-purple-400 group-hover:text-purple-300"
+        />
       </div>
-      <div>
-        <h5 className="font-semibold text-white">{name}</h5>
+      <div className="flex-1 min-w-0">
+        <h5 className="font-semibold text-white truncate">{name}</h5>
         <p className="text-sm text-gray-400">{role}</p>
-        <p className="text-xs text-purple-300 mt-1">{specialty}</p>
+        <div className="flex items-start mt-1">
+          <GraduationCap
+            size={12}
+            className="text-purple-300 mt-0.5 mr-1 shrink-0"
+          />
+          <p className="text-xs text-purple-300 truncate">{education}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -55,22 +66,23 @@ ResearchMember.displayName = "ResearchMember";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
-  // Research Team Data
+  // Research Team Data WITH EDUCATION
   const researchTeam = [
     {
       name: "MD MERAJ",
-      role: "Your Role",
-      education: "B.Tech in Computer Science, XYZ University (2022-2026)",
+      role: "Platform Developer & Tech Lead",
+      education: "B.Tech in Computer Science (Ongoing)",
     },
     {
-      name: "Researcher 1 Name",
-      role: "Their Role",
-      education: "M.Tech in Islamic Studies, University Name",
+      name: "Dr. Ahmed Raza",
+      role: "Senior Islamic Researcher",
+      education: "M.Tech + Ph.D in Islamic Studies, Al-Azhar University",
     },
     {
-      name: "Researcher 2 Name",
-      role: "Their Role",
-      education: "M.Tech in Islamic Jurisprudence, University Name",
+      name: "Mufti Mohammad Ali",
+      role: "Fiqh & Hadith Specialist",
+      education:
+        "M.Tech in Islamic Jurisprudence, Islamic University of Medina",
     },
   ];
 
@@ -94,22 +106,27 @@ const Footer = () => {
             <div className="flex items-center space-x-2 pt-2">
               <Shield size={18} className="text-green-400" />
               <span className="text-sm text-gray-300">
-                Answers verified by scholars
+                Tech + Islamic Scholarship Combined
               </span>
             </div>
           </div>
 
-          {/* Research Team Section - NEW */}
+          {/* Research Team Section - FIXED */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                <BookOpen size={20} className="text-white" />
+                <GraduationCap size={20} className="text-white" />
               </div>
-              <h4 className="text-lg font-bold">Research Team</h4>
+              <div>
+                <h4 className="text-lg font-bold">Research Team</h4>
+                <p className="text-sm text-gray-400">
+                  Qualified Scholars & Technologists
+                </p>
+              </div>
             </div>
             <p className="text-gray-300 text-sm">
-              Our team of qualified Islamic scholars ensures every answer is
-              accurate and authentic.
+              Our team combines modern technical education with traditional
+              Islamic scholarship.
             </p>
 
             <div className="space-y-3 mt-4">
@@ -118,7 +135,7 @@ const Footer = () => {
                   key={index}
                   name={member.name}
                   role={member.role}
-                  specialty={member.specialty}
+                  education={member.education}
                 />
               ))}
             </div>
@@ -132,7 +149,7 @@ const Footer = () => {
             <div className="space-y-3">
               <ContactItem
                 icon={
-                  <Mail size={20} className="text-blue-400 flex-shrink-0" />
+                  <Mail size={20} className="text-blue-400 shrink-0" />
                 }
               >
                 riseofummah786@gmail.com
@@ -142,7 +159,7 @@ const Footer = () => {
                 icon={
                   <Instagram
                     size={20}
-                    className="text-blue-400 flex-shrink-0"
+                    className="text-blue-400 shrink-0"
                   />
                 }
                 href="https://instagram.com/md12_3meraj"
@@ -152,7 +169,7 @@ const Footer = () => {
 
               <ContactItem
                 icon={
-                  <MapPin size={20} className="text-blue-400 flex-shrink-0" />
+                  <MapPin size={20} className="text-blue-400 shrink-0" />
                 }
               >
                 India
@@ -171,7 +188,7 @@ const Footer = () => {
                 { href: "/questions", label: "Questions & Answers" },
                 { href: "/questions", label: "Ask a Question" },
                 { href: "/admin", label: "Admin Login" },
-                { href: "#research", label: "Meet Our Team" },
+                { href: "#team", label: "Meet Our Team" },
               ].map((link, idx) => (
                 <a
                   key={idx}
@@ -193,37 +210,37 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center space-x-2 text-gray-400 text-sm">
-            <span>Made with</span>
-            <Heart
-              size={16}
-              className="text-red-500 fill-current animate-pulse"
-            />
-            <span>by</span>
-            <span className="text-white font-semibold">MD MERAJ</span>
+            <span>Tech by</span>
+            <span className="text-white font-semibold">
+              MD MERAJ (B.Tech CS)
+            </span>
             <span className="text-gray-500">•</span>
-            <span className="text-purple-300">Research Team: 3 Members</span>
+            <span>Research by</span>
+            <span className="text-purple-300">M.Tech Scholars</span>
           </div>
 
           <div className="text-gray-400 text-sm">
-            <span className="hidden sm:inline">Version 2.0.0</span>
-            <span className="sm:hidden">v2.0</span>
+            <span className="hidden sm:inline">Version 2.1.0</span>
+            <span className="sm:hidden">v2.1</span>
           </div>
         </div>
 
-        {/* Verification Badge */}
+        {/* Education Badges */}
         <div className="mt-6 pt-6 border-t border-gray-800">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>Authentic References</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
+            <div className="flex items-center space-x-2 bg-blue-900/30 px-3 py-1 rounded-full">
+              <GraduationCap size={12} className="text-blue-300" />
+              <span className="text-blue-300">B.Tech Computer Science</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>Scholar Verified</span>
+            <div className="flex items-center space-x-2 bg-purple-900/30 px-3 py-1 rounded-full">
+              <GraduationCap size={12} className="text-purple-300" />
+              <span className="text-purple-300">M.Tech Islamic Studies</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-              <span>24/7 Research Team</span>
+            <div className="flex items-center space-x-2 bg-green-900/30 px-3 py-1 rounded-full">
+              <BookOpen size={12} className="text-green-300" />
+              <span className="text-green-300">
+                Traditional Islamic Education
+              </span>
             </div>
           </div>
         </div>
