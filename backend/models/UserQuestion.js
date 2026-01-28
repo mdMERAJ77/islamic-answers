@@ -7,11 +7,12 @@ const userQuestionSchema = new mongoose.Schema({
     trim: true
   },
   email: {
-    type: String,
-    required: true, // ✅ MUST BE TRUE
-    trim: true,
-    lowercase: true
-  },
+  type: String,
+  required: true, // ✅
+  trim: true,
+  lowercase: true,
+  match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'] // ❌ Might be failing
+},
   ipAddress: {
     type: String,
     required: true
