@@ -35,7 +35,10 @@ const RaiseQuestion = ({ onSuccess }) => {
         formData
       );
 
+      // ✅ POPUP ADDED HERE
       if (response.data.success) {
+        alert(`✅ Question Submitted Successfully!\n\n"${formData.question}"\n\nWe will review your question and provide an authentic answer with Quran & Hadith references.`);
+        
         setFormData({
           question: '',
           description: '',
