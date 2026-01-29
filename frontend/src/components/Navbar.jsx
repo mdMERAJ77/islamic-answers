@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { API } from "../utils/api";
-
+import SearchBar from '../Search/SearchBar';
 // ========== COMPONENTS DEFINED OUTSIDE RENDER ==========
 
 const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
@@ -222,6 +222,9 @@ const Navbar = () => {
             </div>
           </div>
         )}
+      </div>
+      <div className="nav-search">
+        <SearchBar variant="navbar" />
       </div>
     </nav>
   );

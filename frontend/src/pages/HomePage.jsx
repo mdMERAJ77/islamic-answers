@@ -1,5 +1,6 @@
 // src/pages/HomePage.jsx
 import { Link } from "react-router-dom";
+import SearchBar from "../components/Search/SearchBar";
 
 const HomePage = () => {
   return (
@@ -9,8 +10,7 @@ const HomePage = () => {
         Welcome to Islamic Q&A
       </h1>
       <h2 className="text-2xl font-semibold text-gray-700 mb-6">
-        <span className="font-hindi">इस्लामी सवाल-जवाब
-</span> |
+        <span className="font-hindi">इस्लामी सवाल-जवाब</span> |
         <span className="font-urdu" dir="rtl">
           {" "}
           اسلامی سوال و جواب
@@ -24,8 +24,54 @@ const HomePage = () => {
 
       {/* Hindi Translation */}
       <p className="text-gray-600 mb-10 max-w-2xl mx-auto font-hindi">
-        इस्लाम के बारे में सीखें, गलतफहमियाँ दूर करें, और कुरान-हदीस से सही जवाब पाएँ।
+        इस्लाम के बारे में सीखें, गलतफहमियाँ दूर करें, और कुरान-हदीस से सही जवाब
+        पाएँ।
       </p>
+
+      {/* 🔍 SEARCH BAR ADDED HERE 🔍 */}
+      <div className="my-10 max-w-3xl mx-auto">
+        <div className="text-lg font-semibold text-gray-700 mb-4">
+          Search Islamic Knowledge
+          <span className="block text-sm font-normal text-gray-500 font-hindi mt-1">
+            इस्लामी ज्ञान खोजें
+          </span>
+        </div>
+        <SearchBar />
+        <div className="mt-4 flex flex-wrap gap-2 justify-center">
+          <span className="text-gray-600 text-sm">Try: </span>
+          <button 
+            onClick={() => window.location.href='/search?q=women+rights'}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition"
+          >
+            Women Rights
+          </button>
+          <button 
+            onClick={() => window.location.href='/search?q=prayer'}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition"
+          >
+            Prayer Method
+          </button>
+          <button 
+            onClick={() => window.location.href='/search?q=ramadan'}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition"
+          >
+            Ramadan Rules
+          </button>
+          <button 
+            onClick={() => window.location.href='/search?q=hijab'}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition"
+          >
+            Hijab
+          </button>
+          <button 
+            onClick={() => window.location.href='/search?q=zakat'}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition"
+          >
+            Zakat
+          </button>
+        </div>
+      </div>
+      {/* 🔍 SEARCH BAR END 🔍 */}
 
       {/* Features Grid */}
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -69,7 +115,8 @@ const HomePage = () => {
             provide you with an authentic answer with references.
           </p>
           <p className="text-gray-600 mb-6 font-hindi">
-            इस्लाम के बारे में कोई सवाल है? यहाँ पूछें और कुरान-हदीस के हवाले से सही जवाब पाएँ।
+            इस्लाम के बारे में कोई सवाल है? यहाँ पूछें और कुरान-हदीस के हवाले से
+            सही जवाब पाएँ।
           </p>
           <Link
             to="/questions"
