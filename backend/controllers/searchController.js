@@ -1,7 +1,6 @@
-// backend/controllers/searchController.js
-const Question = require('../models/Question');
+import Question from '../models/Question.js';
 
-exports.searchQuestions = async (req, res) => {
+export const searchQuestions = async (req, res) => {
   try {
     const { q, category = 'all', page = 1, limit = 10 } = req.query;
     
@@ -17,9 +16,7 @@ exports.searchQuestions = async (req, res) => {
       $or: [
         { questionEnglish: { $regex: q, $options: 'i' } },
         { questionHindi: { $regex: q, $options: 'i' } },
-        { tags: { $regex: q, $options: 'i' } },
-        { 'answers.english': { $regex: q, $options: 'i' } },
-        { 'answers.hindi': { $regex: q, $options: 'i' } }
+        { tags: { $regex: q, $options: 'i' } }
       ]
     };
 
@@ -43,8 +40,7 @@ exports.searchQuestions = async (req, res) => {
       results: questions,
       total,
       page: parseInt(page),
-      totalPages: Math.ceil(total / limit),
-      hasMore: (page * limit) < total
+      totalPages: Math.ceil(total / limit)
     });
 
   } catch (error) {
@@ -56,7 +52,7 @@ exports.searchQuestions = async (req, res) => {
   }
 };
 
-exports.getSuggestions = async (req, res) => {
+export const getSuggestions = async (req, res) => {
   try {
     const { q } = req.query;
     
@@ -90,22 +86,19 @@ exports.getSuggestions = async (req, res) => {
   }
 };
 
-exports.getPopularSearches = async (req, res) => {
+export const getPopularSearches = async (req, res) => {
   const popularSearches = [
     { term: 'women rights', count: 150 },
     { term: 'prayer method', count: 120 },
     { term: 'ramadan rules', count: 95 },
     { term: 'hijab', count: 80 },
-    { term: 'zakat', count: 70 },
-    { term: 'marriage in islam', count: 65 },
-    { term: 'halal food', count: 60 },
-    { term: 'islam and science', count: 55 }
+    { term: 'zakat', count: 70 }
   ];
   
   res.json({ popularSearches });
 };
 
-exports.getSearchCategories = async (req, res) => {
+export const getSearchCategories = async (req, res) => {
   try {
     const categories = await Question.distinct('category');
     res.json({ categories: categories.filter(c => c) });

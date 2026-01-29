@@ -1,5 +1,5 @@
 // backend/middleware/searchMiddleware.js
-exports.validateSearch = (req, res, next) => {
+export const validateSearch = (req, res, next) => {
   const { q } = req.query;
   
   if (!q || q.trim().length === 0) {

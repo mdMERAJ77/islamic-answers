@@ -1,5 +1,4 @@
 const API_URL = 'https://islamic-answers-backend.onrender.com';
-
 // Search functions
 export const searchQuestions = async (query, category = 'all', page = 1) => {
   try {

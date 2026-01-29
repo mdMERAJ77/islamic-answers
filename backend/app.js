@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import questionRoutes from './routes/questionRoutes.js';
 import userQuestionRoutes from './routes/userQuestionRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import searchRoutes from './routes/searchRoutes.js'; // ✅ NEW IMPORT
+import searchRoutes from './routes/searchRoutes.js'; // ✅ ES6 IMPORT
 // import { apiLimiter, loginLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
