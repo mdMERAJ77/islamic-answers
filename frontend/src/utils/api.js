@@ -1,4 +1,3 @@
-// frontend/src/utils/api.js
 const API_URL = 'https://islamic-answers-backend.onrender.com';
 
 // Search functions
@@ -50,4 +49,13 @@ export const submitQuestion = async (questionData) => {
     console.error('Error submitting question:', error);
     return { success: false, error: 'Failed to submit question' };
   }
+};
+
+// ✅ ADD THESE LINES - THIS IS THE FIX
+export const API = {
+  searchQuestions,
+  getSearchSuggestions,
+  fetchQuestions,
+  submitQuestion,
+  URL: API_URL
 };

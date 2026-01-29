@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx - SIMPLE WORKING VERSION
+// src/components/Navbar.jsx - FIXED VERSION
 import { useState, memo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -11,9 +11,8 @@ import {
   Shield,
   Heart,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { API } from "../utils/api";
-import SearchBar from '../components/Search/SearchBar';
+import SearchBar from './Search/SearchBar';
+
 // ========== COMPONENTS DEFINED OUTSIDE RENDER ==========
 
 const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
@@ -50,24 +49,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Check auth status
-  const { data: authData } = useQuery({
-    queryKey: ["navbarAuth"],
-    queryFn: () => API.checkAuth().then((res) => res.data),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  const isAdmin = authData?.isAuthenticated || false;
-
-  const handleLogout = async () => {
-    try {
-      await API.logout();
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout error:", error.message);
-    }
-  };
+  // ✅ SIMPLIFIED: Remove auth for now
+  const isAdmin = false; // Set to true if you want admin link
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
@@ -94,6 +77,11 @@ const Navbar = () => {
             <span className="sm:hidden">IQ&A</span>
           </Link>
 
+          {/* Search Bar - Moved here for better layout */}
+          <div className="flex-1 max-w-md mx-4 hidden md:block">
+            <SearchBar />
+          </div>
+
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-2">
             <NavLink to="/" iconType="home" isActive={isActive("/")}>
@@ -116,33 +104,14 @@ const Navbar = () => {
               Donate
             </NavLink>
 
-            {isAdmin ? (
-              <>
-                <NavLink
-                  to="/admin"
-                  iconType="shield"
-                  isActive={isActive("/admin")}
-                >
-                  Admin
-                </NavLink>
-
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition flex items-center space-x-2 ml-2"
-                >
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              <NavLink
-                to="/admin"
-                iconType="login"
-                isActive={isActive("/admin")}
-              >
-                Admin
-              </NavLink>
-            )}
+            {/* Admin/Login Link - Always show for now */}
+            <NavLink
+              to="/admin"
+              iconType={isAdmin ? "shield" : "login"}
+              isActive={isActive("/admin")}
+            >
+              {isAdmin ? "Admin" : "Admin Login"}
+            </NavLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -154,6 +123,11 @@ const Navbar = () => {
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+        </div>
+
+        {/* Mobile Search Bar */}
+        <div className="md:hidden my-3">
+          <SearchBar />
         </div>
 
         {/* Mobile Menu */}
@@ -187,45 +161,18 @@ const Navbar = () => {
                 Donate
               </NavLink>
 
-              {isAdmin ? (
-                <>
-                  <NavLink
-                    to="/admin"
-                    iconType="shield"
-                    isActive={isActive("/admin")}
-                    onClick={closeMenu}
-                  >
-                    Admin Panel
-                  </NavLink>
-
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMenu();
-                    }}
-                    className="w-full flex items-center space-x-3 p-3 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition text-left"
-                  >
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <NavLink
-                  to="/admin"
-                  iconType="login"
-                  isActive={isActive("/admin")}
-                  onClick={closeMenu}
-                >
-                  Admin Login
-                </NavLink>
-              )}
+              <NavLink
+                to="/admin"
+                iconType={isAdmin ? "shield" : "login"}
+                isActive={isActive("/admin")}
+                onClick={closeMenu}
+              >
+                {isAdmin ? "Admin Panel" : "Admin Login"}
+              </NavLink>
             </div>
           </div>
         )}
       </div>
-      <div className="flex-1 max-w-md mx-4">
-  <SearchBar />
-</div>
     </nav>
   );
 };
