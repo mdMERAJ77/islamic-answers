@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { API } from "../utils/api";
-import SearchBar from '../Search/SearchBar';
+import SearchBar from '../components/Search/SearchBar';
 // ========== COMPONENTS DEFINED OUTSIDE RENDER ==========
 
 const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
