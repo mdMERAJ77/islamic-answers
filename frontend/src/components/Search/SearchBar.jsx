@@ -83,12 +83,12 @@ const SearchBar = ({ onSearch, initialQuery = '' }) => {
     setShowSuggestions(true);
   };
 
-  const handleInputBlur = () => {
-    // Small delay to allow click on suggestions
-    setTimeout(() => {
-      setShowSuggestions(false);
-    }, 200);
-  };
+//   const handleInputBlur = () => {
+//     // Small delay to allow click on suggestions
+//     setTimeout(() => {
+//       setShowSuggestions(false);
+//     }, 200);
+//   };
 
   const filteredSuggestions = suggestions.filter(item => 
     query ? item.toLowerCase().includes(query.toLowerCase()) : true

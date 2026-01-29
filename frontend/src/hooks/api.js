@@ -1,7 +1,7 @@
 // frontend/src/hooks/api.js - SIMPLE & WORKING
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://islamic-answers-backend.onrender.com/api';
 
 // Simple API utility
 export const API = {

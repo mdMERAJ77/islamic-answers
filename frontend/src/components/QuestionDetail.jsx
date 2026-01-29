@@ -1,106 +1,3 @@
-// // frontend/src/components/QuestionDetail.jsx - COMPLETE WORKING VERSION
-// import React, { useState, useEffect } from 'react';
-// import { useParams } from 'react-router-dom';
-// import axios from 'axios';
-
-// const QuestionDetail = () => {
-//   const { id } = useParams(); // URL se id milega (1, 2, 3...)
-//   const [question, setQuestion] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState('');
-
-//   console.log('Question ID:', id); // Debug
-
-//   useEffect(() => {
-//     const fetchQuestion = async () => {
-//       try {
-//         setLoading(true);
-//         console.log('Fetching question from API...');
-        
-//         // API call - check port 5000 ya 3001
-//         const response = await axios.get(`http://localhost:5000/api/questions/${id}`);
-//         console.log('API Response:', response.data);
-        
-//         setQuestion(response.data);
-//       } catch (err) {
-//         console.error('API Error:', err.response || err.message);
-//         setError('Question not found or server error');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     if (id) {
-//       fetchQuestion();
-//     }
-//   }, [id]);
-
-//   // Debug current state
-//   console.log('Loading:', loading);
-//   console.log('Error:', error);
-//   console.log('Question:', question);
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-64">
-//         <div className="text-xl">Loading question...</div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="container mx-auto px-4 py-8">
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-//           <strong>Error:</strong> {error}
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!question) {
-//     return (
-//       <div className="container mx-auto px-4 py-8">
-//         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-//           Question not found
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="container mx-auto px-4 py-8 max-w-4xl">
-//       <h1 className="text-3xl font-bold mb-4 text-gray-900">
-//         {question.title || 'No Title'}
-//       </h1>
-      
-//       <div className="bg-white shadow-md rounded-lg p-6">
-//         <h2 className="text-xl font-semibold mb-4">Answer:</h2>
-//         <p className="text-gray-700 mb-6">
-//           {question.answer || 'No answer available'}
-//         </p>
-        
-//         <div className="mt-6">
-//           <h3 className="text-lg font-semibold mb-2">Tags:</h3>
-//           <div className="flex flex-wrap gap-2">
-//             {question.tags && question.tags.map((tag, index) => (
-//               <span 
-//                 key={index}
-//                 className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
-//               >
-//                 {tag}
-//               </span>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default QuestionDetail;
-
-
 
 
 import React, { useState, useEffect } from 'react';
@@ -119,7 +16,7 @@ const QuestionDetail = () => {
         setLoading(true);
         console.log('🔄 Fetching question for ID:', id);
         
-        const response = await axios.get(`http://localhost:5000/api/questions/${id}`);
+        const response = await axios.get(`https://islamic-answers-backend.onrender.com/api/questions/${id}`);
         console.log('✅ API Response:', response.data);
         
         setQuestion(response.data.data);

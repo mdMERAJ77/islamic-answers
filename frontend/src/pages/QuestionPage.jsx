@@ -1,11 +1,11 @@
-// frontend/src/pages/QuestionPage.jsx - WORKING VERSION
+// frontend/src/pages/QuestionPage.jsx - CORRECTED VERSION
 import { useState, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import QuestionList from '../components/QuestionList';
 import RaiseQuestion from '../components/RaiseQuestion';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
-import axios from 'axios'; // Direct axios import
+import { API } from '../utils/api.js'; // Import API object
 
 // Memoized components for performance
 const QuestionCount = memo(({ count }) => (
@@ -28,7 +28,7 @@ QuestionCount.displayName = 'QuestionCount';
 const QuestionsPage = () => {
   const [showRaiseForm, setShowRaiseForm] = useState(false);
 
-  // ✅ FIXED: Direct axios call instead of API.getQuestions
+  // ✅ CORRECTED: Use API.fetchQuestions() function
   const { 
     data: questionsData = {}, 
     isLoading, 
@@ -38,27 +38,28 @@ const QuestionsPage = () => {
   } = useQuery({
     queryKey: ['questions'],
     queryFn: async () => {
-      console.log('🔄 Fetching questions...');
+      console.log('🔄 Fetching questions from:', API.URL);
       
       try {
-        const response = await axios.get('http://localhost:5000/api/questions');
-        console.log('📊 API Response:', response.data);
+        // Use API.fetchQuestions() function
+        const data = await API.fetchQuestions();
+        console.log('📊 API Response:', data);
         
         // Handle response format
-        if (response.data && response.data.success) {
+        if (data && data.success) {
           // New format: { success: true, data: [], count: number }
           return { 
-            questions: response.data.data || [], 
-            count: response.data.count || 0 
+            questions: data.data || [], 
+            count: data.count || 0 
           };
-        } else if (Array.isArray(response.data)) {
+        } else if (Array.isArray(data)) {
           // Direct array format
           return { 
-            questions: response.data, 
-            count: response.data.length 
+            questions: data, 
+            count: data.length 
           };
         } else {
-          console.warn('Unexpected response format:', response.data);
+          console.warn('Unexpected response format:', data);
           return { questions: [], count: 0 };
         }
       } catch (err) {

@@ -13,11 +13,32 @@ const Navbar = () => {
     setShowMobileSearch(false);
   }, []);
 
+  // Fix useEffect - body scroll lock ke liye
   useEffect(() => {
-    if (isMenuOpen || showMobileSearch) {
-      closeAllMenus();
+    if (isMenuOpen) {
+      document.body.classList.add('menu-open');
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.classList.remove('menu-open');
+      document.body.style.overflow = 'auto';
     }
-  }, [location]); // eslint-disable-line react-hooks/exhaustive-deps
+    
+    return () => {
+      document.body.classList.remove('menu-open');
+      document.body.style.overflow = 'auto';
+    };
+  }, [isMenuOpen]);
+
+  // Location change par menus close karein
+ // Location change par menus close karein
+useEffect(() => {
+  const closeMenus = () => {
+    if (isMenuOpen) setIsMenuOpen(false);
+    if (showMobileSearch) setShowMobileSearch(false);
+  };
+  
+  closeMenus();
+}, [location]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -116,7 +137,7 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* ✅ FIXED: Mobile Controls - NOW VISIBLE */}
+        {/* ✅ Mobile Controls */}
         <div className="mobile-controls" style={styles.mobileControls}>
           <button
             className="mobile-search-toggle"
@@ -171,10 +192,10 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - ✅ Conditional Rendering Fixed */}
         <div className="mobile-menu" style={{
           ...styles.mobileMenu,
-          right: isMenuOpen ? '0' : '-300px',
+          ...(isMenuOpen && styles.mobileMenuOpen),
           background: '#ffffff',
           boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.2)',
         }}>
@@ -309,7 +330,7 @@ const Navbar = () => {
   );
 };
 
-// Styles Object - UPDATED FOR MOBILE VISIBILITY
+// ✅ Fixed Styles Object
 const styles = {
   navbar: {
     background: 'white',
@@ -404,7 +425,7 @@ const styles = {
   activeNavLink: {
     color: '#10b981',
   },
-  // ✅ FIXED: Mobile Controls now visible
+  // Mobile Controls
   mobileControls: {
     display: 'none',
     alignItems: 'center',
@@ -438,14 +459,19 @@ const styles = {
   mobileMenu: {
     position: 'fixed',
     top: 0,
+    right: '-300px',
     bottom: 0,
     width: '280px',
     background: 'white',
     boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.2)',
-    zIndex: 1002,
+    zIndex: 1100,
     transition: 'right 0.3s ease',
     display: 'flex',
     flexDirection: 'column',
+    overflowY: 'auto',
+  },
+  mobileMenuOpen: {
+    right: '0',
   },
   mobileMenuHeader: {
     display: 'flex',
@@ -453,12 +479,17 @@ const styles = {
     alignItems: 'center',
     padding: '1rem 1.25rem',
     borderBottom: '1px solid #e5e7eb',
+    position: 'sticky',
+    top: 0,
+    background: '#f8fafc',
+    zIndex: 1,
   },
   mobileNavLinks: {
     flex: 1,
     overflowY: 'auto',
     padding: '0.5rem 0',
     maxHeight: 'calc(100vh - 120px)',
+    WebkitOverflowScrolling: 'touch',
   },
   mobileNavLink: {
     display: 'flex',
@@ -479,6 +510,9 @@ const styles = {
   mobileMenuFooter: {
     padding: '0.75rem 1.25rem',
     borderTop: '1px solid #e5e7eb',
+    position: 'sticky',
+    bottom: 0,
+    background: '#f9fafb',
   },
   menuBackdrop: {
     position: 'fixed',
@@ -487,7 +521,7 @@ const styles = {
     right: 0,
     bottom: 0,
     background: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 1001,
+    zIndex: 1099,
   },
   css: `
     @keyframes fadeIn {
@@ -495,7 +529,7 @@ const styles = {
       to { opacity: 1; }
     }
     
-    /* ✅ FIXED: Mobile controls always visible */
+    /* Mobile styles */
     @media (max-width: 768px) {
       .desktop-search,
       .desktop-nav {
@@ -504,9 +538,17 @@ const styles = {
       
       .mobile-controls {
         display: flex !important;
+        z-index: 1001 !important;
+        position: relative;
       }
       
-      /* Ensure buttons are visible */
+      /* Prevent body scroll when menu is open */
+      body.menu-open {
+        overflow: hidden !important;
+        position: fixed;
+        width: 100%;
+      }
+      
       .mobile-button {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       }
@@ -514,12 +556,8 @@ const styles = {
     
     @media (max-width: 480px) {
       .mobile-menu {
-        width: 100% !important;
-        right: -100% !important;
-      }
-      
-      .mobile-menu.open {
-        right: 0 !important;
+        width: 85% !important;
+        max-width: 300px;
       }
     }
     
@@ -527,6 +565,7 @@ const styles = {
       animation: fadeIn 0.3s ease;
     }
     
+    /* Navigation link hover effects */
     .nav-link:hover {
       color: #10b981 !important;
     }
@@ -542,6 +581,7 @@ const styles = {
       border-radius: 1px;
     }
     
+    /* Search form focus effect */
     .search-form:focus-within {
       border-color: #059669 !important;
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
@@ -552,7 +592,7 @@ const styles = {
       transform: scale(1.02);
     }
     
-    /* ✅ FIXED: Mobile button hover effects */
+    /* Mobile button hover effects */
     .mobile-search-toggle:hover {
       background: #e5e7eb !important;
       color: #1f2937 !important;
@@ -571,18 +611,38 @@ const styles = {
       border-left-color: #10b981 !important;
     }
     
-    /* Scrollbar styling */
-    .mobile-nav-links::-webkit-scrollbar {
-      width: 4px;
+    /* Scrollbar styling for mobile menu */
+    .mobile-menu::-webkit-scrollbar {
+      width: 6px;
     }
     
-    .mobile-nav-links::-webkit-scrollbar-track {
+    .mobile-menu::-webkit-scrollbar-track {
       background: #f1f1f1;
     }
     
-    .mobile-nav-links::-webkit-scrollbar-thumb {
+    .mobile-menu::-webkit-scrollbar-thumb {
       background: #10b981;
-      border-radius: 2px;
+      border-radius: 3px;
+    }
+    
+    .mobile-menu::-webkit-scrollbar-thumb:hover {
+      background: #059669;
+    }
+    
+    /* Mobile menu animation */
+    .mobile-menu {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
   `,
 };
