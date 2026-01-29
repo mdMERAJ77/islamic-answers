@@ -1,11 +1,11 @@
-// src/pages/QuestionPage.jsx - FIXED VERSION
+// frontend/src/pages/QuestionPage.jsx - WORKING VERSION
 import { useState, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import QuestionList from '../components/QuestionList';
 import RaiseQuestion from '../components/RaiseQuestion';
-import { API } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
+import axios from 'axios'; // Direct axios import
 
 // Memoized components for performance
 const QuestionCount = memo(({ count }) => (
@@ -28,7 +28,7 @@ QuestionCount.displayName = 'QuestionCount';
 const QuestionsPage = () => {
   const [showRaiseForm, setShowRaiseForm] = useState(false);
 
-  // ✅ FIXED: Handle API response format properly
+  // ✅ FIXED: Direct axios call instead of API.getQuestions
   const { 
     data: questionsData = {}, 
     isLoading, 
@@ -38,21 +38,33 @@ const QuestionsPage = () => {
   } = useQuery({
     queryKey: ['questions'],
     queryFn: async () => {
-      const response = await API.getQuestions();
-      console.log('📊 API Response:', response);
+      console.log('🔄 Fetching questions...');
       
-      // Handle NEW format response
-      if (response && response.data && response.data.data) {
-        // NEW format: { success: true, data: [], count: number }
-        return { questions: response.data.data, count: response.data.count };
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // OLD format: direct array
-        return { questions: response.data, count: response.data.length };
-      } else if (Array.isArray(response)) {
-        // Direct array response
-        return { questions: response, count: response.length };
+      try {
+        const response = await axios.get('http://localhost:5000/api/questions');
+        console.log('📊 API Response:', response.data);
+        
+        // Handle response format
+        if (response.data && response.data.success) {
+          // New format: { success: true, data: [], count: number }
+          return { 
+            questions: response.data.data || [], 
+            count: response.data.count || 0 
+          };
+        } else if (Array.isArray(response.data)) {
+          // Direct array format
+          return { 
+            questions: response.data, 
+            count: response.data.length 
+          };
+        } else {
+          console.warn('Unexpected response format:', response.data);
+          return { questions: [], count: 0 };
+        }
+      } catch (err) {
+        console.error('❌ Fetch error:', err);
+        throw err;
       }
-      return { questions: [], count: 0 };
     },
     staleTime: 2 * 60 * 1000,
     retry: 2
@@ -118,7 +130,7 @@ const QuestionsPage = () => {
           
           <button
             onClick={handleFormToggle}
-            className="flex-1 lg:flex-none px-5 py-2.5 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5"
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5"
           >
             {showRaiseForm ? '← Back to Questions' : '➕ Ask Question'}
           </button>
@@ -158,7 +170,7 @@ const QuestionsPage = () => {
               </p>
               <button
                 onClick={handleFormToggle}
-                className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-medium"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-medium"
               >
                 Ask First Question
               </button>

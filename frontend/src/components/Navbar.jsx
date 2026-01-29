@@ -1,180 +1,207 @@
-// src/components/Navbar.jsx - FIXED VERSION
-import { useState, memo, useCallback } from "react";
+// src/components/Navbar.jsx - IMPROVED MOBILE UI
+import { useState, memo, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Menu,
-  X,
-  Home,
-  MessageSquare,
-  LogIn,
-  LogOut,
-  Shield,
-  Heart,
-} from "lucide-react";
 import SearchBar from './Search/SearchBar';
-
-// ========== COMPONENTS DEFINED OUTSIDE RENDER ==========
-
-const NavLink = memo(({ to, iconType, children, isActive, onClick }) => {
-  const getIcon = () => {
-    switch (iconType) {
-      case "home": return <Home size={18} />;
-      case "questions": return <MessageSquare size={18} />;
-      case "login": return <LogIn size={18} />;
-      case "shield": return <Shield size={18} />;
-      case "heart": return <Heart size={18} />;
-      default: return <Home size={18} />;
-    }
-  };
-
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
-        isActive ? "bg-blue-700 text-white" : "text-white hover:bg-blue-700/80"
-      }`}
-    >
-      {getIcon()}
-      <span>{children}</span>
-    </Link>
-  );
-});
-
-NavLink.displayName = "NavLink";
-
-// ========== MAIN NAVBAR COMPONENT ==========
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
-  // ✅ SIMPLIFIED: Remove auth for now
-  const isAdmin = false; // Set to true if you want admin link
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setShowMobileSearch(false);
+  }, [location]);
+
+  // Scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
+    setIsMenuOpen(prev => !prev);
+    setShowMobileSearch(false);
   };
 
-  const closeMenu = useCallback(() => {
+  const toggleMobileSearch = () => {
+    setShowMobileSearch(prev => !prev);
     setIsMenuOpen(false);
-  }, []);
+  };
 
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      isScrolled 
+        ? 'bg-blue-800 shadow-xl' 
+        : 'bg-gradient-to-r from-blue-600 to-blue-800'
+    } text-white`}>
+      
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        {/* Main header */}
+        <div className="flex items-center justify-between h-16">
+          
           {/* Logo */}
-          <Link
-            to="/"
-            className="text-xl font-bold flex items-center space-x-2 hover:opacity-90 transition"
-            onClick={closeMenu}
-          >
-            <span className="text-2xl">🕌</span>
-            <span className="hidden sm:inline">Islamic Q&A</span>
-            <span className="sm:hidden">IQ&A</span>
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition">
+              <span className="text-xl">🕌</span>
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="font-bold text-lg">Islamic Q&A</h1>
+              <p className="text-xs text-white/70">Authentic Answers</p>
+            </div>
+            <div className="sm:hidden font-bold">IQ&A</div>
           </Link>
 
-          {/* Search Bar - Moved here for better layout */}
-          <div className="flex-1 max-w-md mx-4 hidden md:block">
-            <SearchBar />
-          </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-2">
-            <NavLink to="/" iconType="home" isActive={isActive("/")}>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            <DesktopNavLink to="/" isActive={isActive("/")}>
               Home
-            </NavLink>
-
-            <NavLink
-              to="/questions"
-              iconType="questions"
-              isActive={isActive("/questions")}
-            >
+            </DesktopNavLink>
+            <DesktopNavLink to="/questions" isActive={isActive("/questions")}>
               Q&A
-            </NavLink>
-
-            <NavLink
-              to="/donate"
-              iconType="heart"
-              isActive={isActive("/donate")}
-            >
+            </DesktopNavLink>
+            <DesktopNavLink to="/donate" isActive={isActive("/donate")}>
               Donate
-            </NavLink>
-
-            {/* Admin/Login Link - Always show for now */}
-            <NavLink
-              to="/admin"
-              iconType={isAdmin ? "shield" : "login"}
-              isActive={isActive("/admin")}
-            >
-              {isAdmin ? "Admin" : "Admin Login"}
-            </NavLink>
+            </DesktopNavLink>
+            <DesktopNavLink to="/admin" isActive={isActive("/admin")}>
+              Admin
+            </DesktopNavLink>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="md:hidden p-2 rounded-lg hover:bg-blue-700 transition"
-            aria-label="Toggle menu"
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Desktop Search */}
+          <div className="hidden md:block w-64 lg:w-80">
+            <SearchBar variant="navbar" />
+          </div>
+
+          {/* Mobile Controls */}
+          <div className="flex items-center space-x-2 md:hidden">
+            <button
+              onClick={toggleMobileSearch}
+              className={`p-2 rounded-lg transition ${
+                showMobileSearch ? 'bg-white/20' : 'hover:bg-white/10'
+              }`}
+              aria-label="Search"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            <button
+              onClick={toggleMenu}
+              className="p-2 rounded-lg hover:bg-white/10 transition flex flex-col items-center justify-center space-y-1"
+              aria-label="Menu"
+            >
+              <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${
+                isMenuOpen ? 'rotate-45 translate-y-1.5' : ''
+              }`}></span>
+              <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${
+                isMenuOpen ? 'opacity-0' : ''
+              }`}></span>
+              <span className={`block w-6 h-0.5 bg-white transition-all duration-300 ${
+                isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''
+              }`}></span>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        <div className="md:hidden my-3">
-          <SearchBar />
-        </div>
+        {/* Mobile Search */}
+        {showMobileSearch && (
+          <div className="md:hidden pb-4 animate-fadeIn">
+            <div className="bg-white rounded-lg p-2">
+              <SearchBar variant="navbar" />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-sm text-white/80">Quick:</span>
+              {['women rights', 'prayer', 'ramadan', 'hijab'].map(term => (
+                <Link
+                  key={term}
+                  to={`/search?q=${term}`}
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full text-sm transition"
+                  onClick={() => setShowMobileSearch(false)}
+                >
+                  {term}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-blue-800 border-t border-blue-900">
-            <div className="py-4 space-y-1">
-              <NavLink
-                to="/"
-                iconType="home"
-                isActive={isActive("/")}
-                onClick={closeMenu}
-              >
-                Home
-              </NavLink>
-
-              <NavLink
-                to="/questions"
-                iconType="questions"
-                isActive={isActive("/questions")}
-                onClick={closeMenu}
-              >
-                Questions & Answers
-              </NavLink>
-
-              <NavLink
-                to="/donate"
-                iconType="heart"
-                isActive={isActive("/donate")}
-                onClick={closeMenu}
-              >
-                Donate
-              </NavLink>
-
-              <NavLink
-                to="/admin"
-                iconType={isAdmin ? "shield" : "login"}
-                isActive={isActive("/admin")}
-                onClick={closeMenu}
-              >
-                {isAdmin ? "Admin Panel" : "Admin Login"}
-              </NavLink>
-            </div>
+          <div className="md:hidden border-t border-white/20 pt-3 pb-4 animate-fadeIn">
+            <MobileNavLink 
+              to="/" 
+              isActive={isActive("/")}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Home
+            </MobileNavLink>
+            <MobileNavLink 
+              to="/questions" 
+              isActive={isActive("/questions")}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Questions & Answers
+            </MobileNavLink>
+            <MobileNavLink 
+              to="/donate" 
+              isActive={isActive("/donate")}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Donate
+            </MobileNavLink>
+            <MobileNavLink 
+              to="/admin" 
+              isActive={isActive("/admin")}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🔐 Admin
+            </MobileNavLink>
           </div>
         )}
       </div>
     </nav>
   );
 };
+
+// Desktop Nav Link Component
+const DesktopNavLink = memo(({ to, children, isActive }) => (
+  <Link
+    to={to}
+    className={`px-4 py-2 rounded-lg font-medium transition ${
+      isActive 
+        ? 'bg-white text-blue-700' 
+        : 'text-white hover:bg-white/10'
+    }`}
+  >
+    {children}
+  </Link>
+));
+
+// Mobile Nav Link Component
+const MobileNavLink = memo(({ to, children, isActive, onClick }) => (
+  <Link
+    to={to}
+    onClick={onClick}
+    className={`flex items-center space-x-3 px-4 py-3 my-1 rounded-lg transition ${
+      isActive 
+        ? 'bg-white text-blue-700 font-semibold' 
+        : 'text-white hover:bg-white/10'
+    }`}
+  >
+    {children}
+  </Link>
+));
+
+DesktopNavLink.displayName = 'DesktopNavLink';
+MobileNavLink.displayName = 'MobileNavLink';
 
 export default Navbar;

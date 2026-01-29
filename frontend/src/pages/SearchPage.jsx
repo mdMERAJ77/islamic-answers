@@ -1,8 +1,9 @@
+// frontend/src/pages/SearchPage.jsx - FIELD NAMES FIXED
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://islamic-answers-backend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -11,7 +12,6 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ✅ FIX: Wrap fetchSearchResults in useCallback
   const fetchSearchResults = useCallback(async () => {
     if (!query) {
       setResults([]);
@@ -43,11 +43,11 @@ const SearchPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [query]); // ✅ Add query as dependency
+  }, [query]);
 
   useEffect(() => {
     fetchSearchResults();
-  }, [fetchSearchResults]); // ✅ Now fetchSearchResults is stable
+  }, [fetchSearchResults]);
 
   if (loading) {
     return (
@@ -73,7 +73,7 @@ const SearchPage = () => {
                 <span className="font-semibold text-green-600">"{query}"</span>
               </div>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-600">{results.length} results found</span>
+              <span className="text-gray-600">{results.length} result{results.length !== 1 ? 's' : ''} found</span>
             </div>
           </div>
         )}
@@ -119,14 +119,16 @@ const SearchPage = () => {
               className="bg-white rounded-xl border border-gray-200 p-5 md:p-6 hover:border-green-300 transition-colors shadow-sm"
             >
               <Link to={`/question/${question._id}`} className="block">
+                {/* ✅ FIXED: Use question_en instead of questionEnglish */}
                 <h3 className="text-xl font-semibold text-gray-800 mb-2 hover:text-green-600">
-                  {question.questionEnglish}
+                  {question.question_en || question.questionEnglish || 'Untitled Question'}
                 </h3>
               </Link>
               
-              {question.questionHindi && (
+              {/* ✅ FIXED: Use question_hi instead of questionHindi */}
+              {question.question_hi && (
                 <p className="text-gray-600 mb-3">
-                  {question.questionHindi}
+                  {question.question_hi}
                 </p>
               )}
               
