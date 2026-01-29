@@ -1,38 +1,79 @@
-/* src/styles/search.css */
+/* SEARCH COMPONENT STYLES */
+
+/* Main Container */
+.search-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto 30px auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* Search Bar */
 .search-bar {
   position: relative;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  margin-bottom: 10px;
 }
 
+/* Input Wrapper */
 .search-input-wrapper {
   display: flex;
   border: 2px solid #2ecc71;
   border-radius: 30px;
   overflow: hidden;
   background: white;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
+.search-input-wrapper:focus-within {
+  border-color: #27ae60;
+  box-shadow: 0 2px 15px rgba(46, 204, 113, 0.15);
+}
+
+/* Input Field */
 .search-input {
   flex: 1;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border: none;
   outline: none;
   font-size: 16px;
+  background: transparent;
+  color: #333;
+  min-width: 0;
+  font-family: inherit;
 }
 
+.search-input::placeholder {
+  color: #888;
+  font-weight: 300;
+}
+
+/* Search Button */
 .search-button {
-  background: #2ecc71;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
   color: white;
   border: none;
-  padding: 0 25px;
+  padding: 0 30px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .search-button:hover {
-  background: #27ae60;
+  background: linear-gradient(135deg, #27ae60, #219653);
+  padding: 0 32px;
+}
+
+.search-button:active {
+  transform: scale(0.98);
 }
 
 /* Suggestions Dropdown */
@@ -42,73 +83,214 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
+  margin-top: 8px;
+  animation: fadeIn 0.2s ease;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Suggestion Items */
 .suggestion-item {
-  padding: 12px 16px;
+  padding: 12px 20px;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
 }
 
 .suggestion-item:hover {
   background: #f8f9fa;
+  padding-left: 24px;
+  color: #2ecc71;
 }
 
-/* Search Results Page */
-.search-results-header {
-  margin-bottom: 30px;
-}
-
-.results-count {
-  color: #666;
+.suggestion-icon {
+  color: #888;
   font-size: 14px;
+  width: 16px;
 }
 
-.result-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.suggestion-item:hover .suggestion-icon {
+  color: #2ecc71;
 }
 
-.result-card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+/* Try Suggestions */
+.try-suggestions {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 15px;
 }
 
-/* Filters */
-.search-filters {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+.try-suggestions small {
+  color: #888;
+  font-weight: 300;
 }
 
-.filter-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
+.try-suggestions span {
+  display: inline-block;
+  margin: 0 8px 8px 0;
+  padding: 6px 12px;
+  background: #f0f9ff;
+  border-radius: 20px;
+  color: #1e40af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  border: 1px solid #dbeafe;
 }
 
-/* Mobile Responsive */
+.try-suggestions span:hover {
+  background: #1e40af;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(30, 64, 175, 0.2);
+}
+
+.try-suggestions span:active {
+  transform: translateY(0);
+}
+
+/* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
-  .search-bar {
+  .search-container {
     max-width: 100%;
+    padding: 0 15px;
+    margin: 15px auto 20px auto;
   }
   
   .search-input {
-    padding: 10px 15px;
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+  
+  .search-button {
+    padding: 0 20px;
+    font-size: 15px;
+  }
+  
+  .search-suggestions {
+    border-radius: 10px;
+    margin-top: 6px;
+  }
+  
+  .suggestion-item {
+    padding: 10px 16px;
     font-size: 14px;
   }
   
-  .search-filters {
-    flex-direction: column;
+  .try-suggestions {
+    font-size: 13px;
+  }
+  
+  .try-suggestions span {
+    padding: 5px 10px;
+    margin: 0 6px 6px 0;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-container {
+    padding: 0 12px;
+  }
+  
+  .search-input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .search-button {
+    padding: 0 16px;
+    font-size: 14px;
+  }
+  
+  .search-button i {
+    display: none; /* Hide icon on very small screens */
+  }
+  
+  .search-input-wrapper {
+    border-width: 1.5px;
+  }
+  
+  .try-suggestions span {
+    margin: 0 4px 4px 0;
+    padding: 4px 8px;
+  }
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+  .search-input-wrapper {
+    background: #2d3748;
+    border-color: #38a169;
+  }
+  
+  .search-input {
+    color: #e2e8f0;
+    background: transparent;
+  }
+  
+  .search-input::placeholder {
+    color: #a0aec0;
+  }
+  
+  .search-suggestions {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .suggestion-item {
+    color: #e2e8f0;
+    border-bottom-color: #4a5568;
+  }
+  
+  .suggestion-item:hover {
+    background: #4a5568;
+  }
+  
+  .suggestion-icon {
+    color: #a0aec0;
+  }
+  
+  .try-suggestions {
+    color: #a0aec0;
+  }
+  
+  .try-suggestions small {
+    color: #718096;
+  }
+  
+  .try-suggestions span {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #63b3ed;
+  }
+  
+  .try-suggestions span:hover {
+    background: #3182ce;
+    color: white;
   }
 }
