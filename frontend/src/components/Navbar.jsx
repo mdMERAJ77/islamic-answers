@@ -223,9 +223,9 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      <div className="nav-search">
-        <SearchBar variant="navbar" />
-      </div>
+      <div className="flex-1 max-w-md mx-4">
+  <SearchBar />
+</div>
     </nav>
   );
 };

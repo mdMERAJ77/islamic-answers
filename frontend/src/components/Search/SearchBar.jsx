@@ -1,4 +1,4 @@
-// src/components/Search/SearchBar.jsx - Enhanced
+// frontend/src/components/Search/SearchBar.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,35 +9,40 @@ const SearchBar = ({ variant = 'default' }) => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query)}`);
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
-  const containerClass = variant === 'hero' 
-    ? "max-w-3xl mx-auto shadow-lg"
-    : "";
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
+
+  const inputClass = variant === 'hero' 
+    ? "px-6 py-4 text-lg rounded-l-lg focus:outline-none focus:ring-2 focus:ring-green-500 flex-1"
+    : "px-4 py-2 rounded-l focus:outline-none focus:ring-1 focus:ring-green-500 flex-1";
+
+  const buttonClass = variant === 'hero'
+    ? "px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold text-lg rounded-r-lg transition"
+    : "px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-r transition";
 
   return (
-    <div className={containerClass}>
-      <form onSubmit={handleSearch}>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search questions about Islam (women rights, prayer, hijab, etc.)"
-            className="w-full px-6 py-4 border-2 border-green-300 rounded-full focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200 text-lg"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button 
-            type="submit"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition flex items-center gap-2"
-          >
-            <span>🔍</span>
-            <span className="hidden sm:inline">Search</span>
-          </button>
-        </div>
-      </form>
-    </div>
+    <form onSubmit={handleSearch} className="w-full">
+      <div className="flex">
+        <input
+          type="text"
+          placeholder="Search Islamic questions (e.g., women rights, prayer, hijab)..."
+          className={inputClass}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button type="submit" className={buttonClass}>
+          {variant === 'hero' ? '🔍 Search' : '🔍'}
+        </button>
+      </div>
+    </form>
   );
 };
 

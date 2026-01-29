@@ -1,48 +1,58 @@
 // backend/controllers/searchController.js
 const Question = require('../models/Question');
-const SearchAnalytics = require('../models/SearchAnalytics');
 
 exports.searchQuestions = async (req, res) => {
   try {
-    const { q, category, language, sort = 'relevance' } = req.query;
+    const { q, category = 'all', page = 1, limit = 10 } = req.query;
     
-    // Log search for analytics
-    await SearchAnalytics.create({
-      query: q,
-      timestamp: new Date(),
-      userAgent: req.headers['user-agent']
-    });
+    if (!q || q.trim() === '') {
+      return res.json({
+        success: true,
+        results: [],
+        message: 'Please enter search query'
+      });
+    }
 
-    // Build search query
-    let searchQuery = {};
-    
-    if (q) {
-      searchQuery.$or = [
+    const searchQuery = {
+      $or: [
         { questionEnglish: { $regex: q, $options: 'i' } },
         { questionHindi: { $regex: q, $options: 'i' } },
         { tags: { $regex: q, $options: 'i' } },
         { 'answers.english': { $regex: q, $options: 'i' } },
         { 'answers.hindi': { $regex: q, $options: 'i' } }
-      ];
-    }
-    
-    if (category) {
+      ]
+    };
+
+    if (category !== 'all') {
       searchQuery.category = category;
     }
 
-    // Execute search
-    const questions = await Question.find(searchQuery)
-      .sort(getSortOption(sort))
-      .limit(50);
+    const skip = (page - 1) * limit;
+    
+    const [questions, total] = await Promise.all([
+      Question.find(searchQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Question.countDocuments(searchQuery)
+    ]);
 
     res.json({
+      success: true,
       query: q,
-      count: questions.length,
-      results: questions
+      results: questions,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      hasMore: (page * limit) < total
     });
-    
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Search failed', 
+      error: error.message 
+    });
   }
 };
 
@@ -50,6 +60,10 @@ exports.getSuggestions = async (req, res) => {
   try {
     const { q } = req.query;
     
+    if (!q || q.length < 2) {
+      return res.json({ suggestions: [] });
+    }
+
     const suggestions = await Question.aggregate([
       {
         $match: {
@@ -59,17 +73,42 @@ exports.getSuggestions = async (req, res) => {
           ]
         }
       },
-      { $limit: 5 },
+      { $limit: 8 },
       {
         $project: {
-          suggestion: '$questionEnglish',
-          hindi: '$questionHindi',
-          _id: 0
+          _id: 1,
+          questionEnglish: 1,
+          questionHindi: 1,
+          category: 1
         }
       }
     ]);
 
-    res.json(suggestions);
+    res.json({ suggestions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getPopularSearches = async (req, res) => {
+  const popularSearches = [
+    { term: 'women rights', count: 150 },
+    { term: 'prayer method', count: 120 },
+    { term: 'ramadan rules', count: 95 },
+    { term: 'hijab', count: 80 },
+    { term: 'zakat', count: 70 },
+    { term: 'marriage in islam', count: 65 },
+    { term: 'halal food', count: 60 },
+    { term: 'islam and science', count: 55 }
+  ];
+  
+  res.json({ popularSearches });
+};
+
+exports.getSearchCategories = async (req, res) => {
+  try {
+    const categories = await Question.distinct('category');
+    res.json({ categories: categories.filter(c => c) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

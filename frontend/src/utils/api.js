@@ -1,104 +1,53 @@
-// src/utils/api.js
-import axios from 'axios';
+// frontend/src/utils/api.js
+const API_URL = 'https://islamic-answers-backend.onrender.com';
 
-// Base URL - एक ही जगह manage
-const API_BASE = 'https://islamic-answers-backend.onrender.com/api';
-
-// Main axios instance
-export const api = axios.create({
-  baseURL: API_BASE,
-  timeout: 15000, // 15 seconds timeout
-  withCredentials: true, // Cookies के लिए जरूरी
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
+// Search functions
+export const searchQuestions = async (query, category = 'all', page = 1) => {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/search?q=${encodeURIComponent(query)}&category=${category}&page=${page}`
+    );
+    return await response.json();
+  } catch (error) {
+    console.error('Search API error:', error);
+    return { success: false, results: [] };
   }
-});
+};
 
-// Cache system for GET requests
-const cache = new Map();
-const CACHE_TIME = 2 * 60 * 1000; // 2 minutes
-
-// Smart fetch with cache
-export const smartFetch = async (url, options = {}) => {
-  const cacheKey = `${url}-${JSON.stringify(options)}`;
-  
-  // Check cache first
-  const cached = cache.get(cacheKey);
-  if (cached && (Date.now() - cached.timestamp) < CACHE_TIME) {
-    console.log('📦 Serving from cache:', url);
-    return cached.data;
-  }
+export const getSearchSuggestions = async (query) => {
+  if (!query || query.length < 2) return [];
   
   try {
-    console.log('🌐 Fetching from network:', url);
-    const response = await api.get(url, options);
-    
-    // Cache the response
-    cache.set(cacheKey, {
-      data: response.data,
-      timestamp: Date.now()
-    });
-    
-    return response.data;
+    const response = await fetch(`${API_URL}/api/search/suggestions?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    return data.suggestions || [];
   } catch (error) {
-    console.error('API Error:', error.message);
-    throw error;
+    console.error('Suggestions error:', error);
+    return [];
   }
 };
 
-// Clear cache function
-export const clearCache = () => {
-  cache.clear();
-  console.log('🧹 Cache cleared');
-};
-
-// Helper for common endpoints
-export const API = {
-  // Auth endpoints
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  checkAuth: () => api.get('/auth/check'),
-  
-  // Questions endpoints
-  getQuestions: () => smartFetch('/questions'),
-  getQuestion: (id) => smartFetch(`/questions/${id}`),
-  addQuestion: (data) => api.post('/questions', data),
-  
-  // User questions
-  getUserQuestions: () => smartFetch('/user-questions'),
-  submitUserQuestion: (data) => api.post('/user-questions', data)
-};
-
-// Request interceptor (adds token if exists)
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor (handles errors globally)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Auto logout on 401
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user');
-      window.location.href = '/admin';
-    }
-    
-    // Better error messages
-    const errorMessage = error.response?.data?.error || 
-                        error.message || 
-                        'Network error occurred';
-    
-    console.error('API Response Error:', errorMessage);
-    return Promise.reject(new Error(errorMessage));
+// Existing functions
+export const fetchQuestions = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/questions`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching questions:', error);
+    return [];
   }
-);
+};
+
+export const submitQuestion = async (questionData) => {
+  try {
+    const response = await fetch(`${API_URL}/api/user-questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(questionData)
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting question:', error);
+    return { success: false, error: 'Failed to submit question' };
+  }
+};

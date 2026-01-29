@@ -1,16 +1,15 @@
-// backend/app.js - WORKING VERSION
+// backend/app.js
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import questionRoutes from './routes/questionRoutes.js';
 import userQuestionRoutes from './routes/userQuestionRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-// ❌ Remove rate limiter imports for now
+import searchRoutes from './routes/searchRoutes.js'; // ✅ NEW IMPORT
 // import { apiLimiter, loginLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
-// ✅ CORS Setup
 const allowedOrigins = [
   'https://islamic-answers-frontend.onrender.com',
   'http://localhost:3000',
@@ -31,11 +30,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
-// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// ❌ TEMPORARY: Comment out ALL rate limiting
+// ❌ TEMPORARY: Comment out rate limiting
 // app.use('/api/questions', apiLimiter);
 // app.use('/api/auth/login', loginLimiter);
 
@@ -43,6 +41,7 @@ app.use(cookieParser());
 app.use('/api/questions', questionRoutes);
 app.use('/api/user-questions', userQuestionRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/search', searchRoutes); // ✅ NEW ROUTE
 
 // ✅ Keep-alive endpoint
 app.get('/keep-alive', (req, res) => {
@@ -50,9 +49,11 @@ app.get('/keep-alive', (req, res) => {
     status: 'alive', 
     timestamp: new Date().toISOString(),
     message: 'Islamic Q&A Backend is running',
-    features: {
-      '24_hour_limit': 'ACTIVE - 1 question per 24 hours',
-      'rate_limiting': 'TEMPORARILY DISABLED - Fixing IPv6 issue'
+    endpoints: {
+      questions: '/api/questions',
+      auth: '/api/auth',
+      search: '/api/search', // ✅ ADDED
+      userQuestions: '/api/user-questions'
     }
   });
 });
@@ -63,7 +64,8 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     service: 'Islamic Q&A API',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    features: ['questions', 'auth', 'search', 'user-questions'] // ✅ UPDATED
   });
 });
 
@@ -72,25 +74,12 @@ app.get('/', (req, res) => {
   res.json({ 
     message: '🎉 Welcome to Islamic Q&A API',
     description: 'Authentic Islamic questions with references from Quran and Hadith',
-    features: [
-      '✅ 24-hour question limit per user (ACTIVE)',
-      '❌ Rate limiting (TEMPORARILY DISABLED - Fixing)',
-      '✅ Question status tracking',
-      '✅ Admin review system'
-    ],
     endpoints: {
-      questions: {
-        public: '/api/questions',
-        userSubmit: '/api/user-questions (POST)',
-        checkStatus: '/api/user-questions/status?email=YOUR_EMAIL'
-      },
+      questions: '/api/questions',
       auth: '/api/auth',
-      monitoring: {
-        health: '/health',
-        keepAlive: '/keep-alive'
-      }
-    },
-    note: '📢 Users can submit only 1 question every 24 hours'
+      search: '/api/search', // ✅ ADDED
+      userQuestions: '/api/user-questions'
+    }
   });
 });
 
@@ -99,7 +88,8 @@ app.use((req, res) => {
   res.status(404).json({ 
     success: false,
     error: 'Route not found',
-    requestedPath: req.originalUrl
+    requestedPath: req.originalUrl,
+    availableEndpoints: ['/api/questions', '/api/auth', '/api/search', '/api/user-questions']
   });
 });
 
